@@ -36,3 +36,16 @@ after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
   # push coverage results to Codecov
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+
+jobs:
+  include:
+    - stage: "Documentation"
+      julia: 1.0
+      os: linux
+      script:
+        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaApproximation/ContinuumArrays.jl.git"'
+        - julia --project=docs/ -e 'using Pkg; pkg"add PyCall PyPlot https://github.com/jagot/Jagot.jl.git https://github.com/jagot/PyPlotRecipes.jl.git Colors LinearAlgebra Statistics"'
+        - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
+                                               Pkg.instantiate()'
+        - julia --project=docs/ docs/make.jl
+      after_success: skip

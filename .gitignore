@@ -1,0 +1,11 @@
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+*~
+.juliahistory
+.ipynb_checkpoints
+ltximg
+
+docs/build/
+docs/Manifest.toml
+/docs/src/figures
