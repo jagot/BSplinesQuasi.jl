@@ -1,7 +1,16 @@
 using IntervalSets
 import BSplinesQuasi: RightContinuous, within_interval, within_support
 
+"""
+    within_interval_linear(x, interval)
+
+Return the range of indices of elements of the sorted vector/range `x`
+that fall within `interval`. This loops through all elements of `x`
+(linear complexity), so it should not be used for large number of
+elements.
+"""
 function within_interval_linear(x, interval)
+    @assert issorted(x)
     N = length(x)+1
     i = N
     j = 0
@@ -16,6 +25,26 @@ function within_interval_linear(x, interval)
     end
 
     i:j
+end
+
+function test_within_interval(x, interval, expected=nothing)
+    linear_expected = within_interval_linear(x, interval)
+    if isnothing(expected)
+        expected = linear_expected
+    else
+        # This is mostly a sanity check to test if the expectations
+        # are actually correct.
+        expected ≠ linear_expected &&
+            throw(ArgumentError("Invalid expectations: $(expected), actual: $(linear_expected)"))
+    end
+
+    result = :(within_interval($x, $interval))
+    expr = :($result == $expected)
+    if (@eval $expr)
+        println("Looking for elements of $x ∈ $interval, got $(@eval $result), expected $expected")
+        length(x) < 30 && println("    x = ", collect(enumerate(x)), "\n")
+    end
+    @eval @test $expr
 end
 
 @testset "Knot sets" begin
@@ -64,29 +93,26 @@ end
         x = range(a, stop=b, length=21)
         @testset "Interval coverage" begin
             @testset "Two intervals" begin
-                @test within_interval(x, 0..0.5) == 1:11 == within_interval_linear(x, 0..0.5)
-                @test within_interval(x, RightContinuous(0,0.5)) == 1:10
-                @test within_interval(x, RightContinuous(0,0.5)) == within_interval_linear(x, RightContinuous(0,0.5))
-                @test within_interval(x, RightContinuous(0.25,0.5)) == 6:10
-                @test within_interval(x, RightContinuous(0.25,0.5)) == within_interval_linear(x, RightContinuous(0.25,0.5))
+                test_within_interval(x, 0..0.5, 1:11)
+                test_within_interval(x, RightContinuous(0,0.5))
+                test_within_interval(x, RightContinuous(0,0.5))
+                test_within_interval(x, RightContinuous(0.25,0.5))
+                test_within_interval(x, RightContinuous(0.25,0.5))
             end
             @testset "Three intervals" begin
-                @test within_interval(x, RightContinuous(0,1/3)) == 1:7
-                @test within_interval_linear(x, RightContinuous(0,1/3)) == 1:7
-                @test within_interval(x, RightContinuous(1/3,2/3)) == 8:14
-                @test within_interval_linear(x, RightContinuous(1/3,2/3)) == 8:14
-                @test within_interval(x, 2/3..1) == 15:21
-                @test within_interval_linear(x, 2/3..1) == 15:21
+                test_within_interval(x, RightContinuous(0,1/3), 1:7)
+                test_within_interval(x, RightContinuous(1/3,2/3), 8:14)
+                test_within_interval(x, 2/3..1, 15:21)
             end
             @testset "Open interval" begin
-                @test within_interval(x, OpenInterval(0.2,0.4)) == 6:8
+                test_within_interval(x, OpenInterval(0.2,0.4), 6:8)
             end
             @testset "Random intervals" begin
                 @testset "L=$L" for L=[:closed,:open]
                     @testset "R=$R" for R=[:closed,:open]
                         for i = 1:1 # 20
                             interval = Interval{L,R}(minmax(rand(),rand())...)
-                            @test within_interval(x, interval) == within_interval_linear(x, interval)
+                            test_within_interval(x, interval)
                         end
                     end
                 end
