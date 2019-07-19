@@ -103,7 +103,7 @@ function within_interval(x::AbstractRange, interval::Interval{L,R}) where {L,R}
     r = rightendpoint(interval)
     a = max(1, ceil(Int, (l-x[1])/δx) + 1)
     b = min(N, ceil(Int, (r-x[1])/δx))
-    a + (x[a] == l && L == :open):b + (b < N && x[b+1] == r && R == :closed)
+    a + (a ≤ N && x[a] == l && L == :open):b + (b < N && x[b+1] == r && R == :closed)
 end
 
 """

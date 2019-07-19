@@ -100,20 +100,34 @@ function deBoor(t::AbstractKnotSet, c::AbstractVector, x,
     α[end]
 end
 
+getindex(B::BSpline{T}, x::Real, j::Integer) where T =
+    deBoor(B.t, UnitVector{T}(size(B,2), j),
+           x, find_interval(B.t, x))
+
+function basis_function!(χ, B::BSpline{T}, x::AbstractRange, j) where T
+    eⱼ = UnitVector{T}(size(B,2), j)
+    for (is,k) ∈ within_support(x, B.t, j)
+        for i in is
+            χ[i] = deBoor(B.t, eⱼ, x[i], k)
+        end
+    end
+end
+
 function getindex(B::BSpline{T}, x::AbstractRange, sel::AbstractVector) where T
     χ = spzeros(T, length(x), length(sel))
     for j in sel
-        eⱼ = UnitVector{T}(size(B,2), j)
-        for (is,k) ∈ within_support(x, B.t, j)
-            for i in is
-                χ[i,j] = deBoor(B.t, eⱼ, x[i], k)
-            end
-        end
+        basis_function!(view(χ, :, j), B, x, j)
     end
     χ
 end
 
-getindex(B::BSpline{T}, x::AbstractRange, ::Colon) where T =
+function getindex(B::BSpline{T}, x::AbstractRange, j::Integer) where T
+    χ = spzeros(T, length(x))
+    basis_function!(χ, B, x, j)
+    χ
+end
+
+getindex(B::BSpline{T}, x, ::Colon) where T =
     getindex(B, x, axes(B,2))
 
 export BSpline

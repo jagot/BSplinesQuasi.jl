@@ -10,3 +10,4 @@ function vecdist(a::AbstractVector, b::AbstractVector,
 end
 
 include("knot_sets.jl")
+include("splines.jl")
