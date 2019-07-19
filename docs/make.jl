@@ -9,6 +9,7 @@ makedocs(
     pages = [
         "Home" => "index.md",
         "Theory" => "theory.md",
+        "Usage" => "usage.md",
     ],
     format = Documenter.HTML(assets = ["assets/latex.js"]),
 )

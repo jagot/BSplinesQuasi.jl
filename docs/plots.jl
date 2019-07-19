@@ -17,8 +17,10 @@ end
 
 lerp(a,b,t) = (1-t)*a + t*b
 
+mean_position(x, ϕ) = ϕ'*Diagonal(x)*ϕ/(ϕ'ϕ)
+
 function Bspline_text(x, ϕ, j, k, color)
-    xⱼ = ϕ'*Diagonal(x)*ϕ/(ϕ'ϕ)
+    xⱼ = mean_position(x, ϕ)
     txt = text(xⱼ,0.7maximum(ϕ),
                latexstring("\\mathrm{B}_{$j,$k}"),
                horizontalalignment="center",
@@ -101,7 +103,68 @@ function full_multiplicity_splines()
     savefig("docs/src/figures/full-multiplicity-splines.svg")
 end
 
+function spline1d()
+    k = 4
+    t = LinearKnotSet(k, 0, 1, 5)
+    B = BSpline(t)
+    x = range(0, stop=1, length=301)
+    χ = B[x, :]
+
+    i = 1:size(B,2)
+    c = sin.(i)
+    s = χ*c
+
+    figure("spline 1d", figsize=(7,9))
+    clf()
+    subplot(311)
+    plot(x, s)
+    plot([mean_position(x, view(χ, :, j)) for j in i], c, "s-")
+    no_tick_labels()
+    ylabel(L"s(x)")
+    margins(0.1,0.1)
+    subplot(312)
+    for j = 1:size(χ,2)
+        ϕ = view(χ, :, j)
+        l=plot(x, ϕ)[1]
+        Bspline_text(x, ϕ, j, k, l.get_color())
+    end
+    margins(0.1,0.1)
+    no_tick_labels()
+    subplot(313)
+    rplot(t)
+    margins(0.1,0.1)
+    xlabel(L"x")
+    tight_layout()
+
+    savefig("docs/src/figures/spline-1d.svg")
+end
+
+function spline2d()
+    k = 4
+    t = LinearKnotSet(k, 0, 1, 5)
+    B = BSpline(t)
+    x = range(0, stop=1, length=301)
+    χ = B[x, :]
+
+    i = 1:size(B,2)
+    c = [sin.(i) tan.(i)]
+    s = χ*c
+
+    figure("spline 2d", figsize=(6,6))
+    clf()
+    plot(s[:,1], s[:,2])
+    plot(c[:,1], c[:,2], "s-")
+    xlabel(L"x")
+    ylabel(L"y")
+    margins(0.1,0.1)
+    tight_layout()
+
+    savefig("docs/src/figures/spline-2d.svg")
+end
+
 mkpath("docs/src/figures")
 cardinal_splines()
 discontinuous_splines()
 full_multiplicity_splines()
+spline1d()
+spline2d()
