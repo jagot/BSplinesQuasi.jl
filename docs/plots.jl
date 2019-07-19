@@ -162,9 +162,25 @@ function spline2d()
     savefig("docs/src/figures/spline-2d.svg")
 end
 
+function logo()
+    t = ArbitraryKnotSet(3, [0.0, 1, 1, 3, 4, 6], 1, 3)
+    r = range(first(t), stop=last(t), length=301)
+    R = BSpline(t)
+    χ = R[r, :]
+
+    figure("logo",figsize=(7,3))
+    clf()
+    plot(r, χ, length(r) < 30 ? ".-" : "-", linewidth=4)
+    margins(0.1, 0.1)
+    axis("off")
+    tight_layout()
+    savefig("docs/src/assets/logo.svg", transparent=true)
+end
+
 mkpath("docs/src/figures")
 cardinal_splines()
 discontinuous_splines()
 full_multiplicity_splines()
 spline1d()
 spline2d()
+logo()

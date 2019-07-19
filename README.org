@@ -6,6 +6,11 @@
 [[https://ci.appveyor.com/project/jagot/bsplinesquasi-jl][https://img.shields.io/appveyor/ci/jagot/bsplinesquasi-jl.svg?logo=appveyor]]
 [[https://codecov.io/gh/jagot/BSplinesQuasi.jl][https://codecov.io/gh/jagot/BSplinesQuasi.jl/branch/master/graph/badge.svg]]
 
+[[https://jagot.github.io/BSplinesQuasi.jl/dev/index.html][https://img.shields.io/badge/docs-dev-blue.svg]]
+
 #+PROPERTY: header-args:julia :session *julia-README*
 
+https://raw.githubusercontent.com/jagot/BSplinesQuasi.jl/gh-pages/dev/assets/logo.svg
+
 Implementation of B-splines in the framework of [[https://github.com/JuliaApproximation/ContinuumArrays.jl][ContinuumArrays.jl]].
+
