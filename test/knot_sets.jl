@@ -40,7 +40,7 @@ function test_within_interval(x, interval, expected=nothing)
 
     result = :(within_interval($x, $interval))
     expr = :($result == $expected)
-    if (@eval $expr)
+    if !(@eval $expr)
         println("Looking for elements of $x ∈ $interval, got $(@eval $result), expected $expected")
         length(x) < 30 && println("    x = ", collect(enumerate(x)), "\n")
     end

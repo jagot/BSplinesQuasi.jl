@@ -2,6 +2,7 @@ using BSplinesQuasi
 using Test
 using LinearAlgebra
 using SparseArrays
+using Compat
 
 function vecdist(a::AbstractVector, b::AbstractVector,
                  ϵ = eps(eltype(a)))

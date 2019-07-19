@@ -22,7 +22,7 @@ import LinearAlgebra: Matrix, dot
 using FastGaussQuadrature
 
 using RecipesBase
-using Printf
+using Compat
 
 """
     UnitVector{T}(N, k)
