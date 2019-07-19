@@ -74,6 +74,11 @@ function show(io::IO, t::AbstractKnotSet)
     write(io, " on $(first(t)..last(t)) ($(numintervals(t)) intervals)")
 end
 
+# TODO: Implement via the `iterate` interface?
+nonempty_intervals(t::AbstractKnotSet) =
+    [j for j in 1:length(t)-1
+     if t[j] ≠ t[j+1]]
+
 function find_interval(t::AbstractKnotSet{T,k,ml,mr}, x, i=ml) where {T,k,ml,mr}
     (x < first(t) || x > last(t)) && return nothing
     x == last(t) && return ml + length(t.t) - 1
@@ -203,4 +208,4 @@ end
     collect(t),y
 end
 
-export ArbitraryKnotSet, LinearKnotSet, ExpKnotSet, order, numintervals, numfunctions
+export ArbitraryKnotSet, LinearKnotSet, ExpKnotSet, order, numintervals, numfunctions, nonempty_intervals

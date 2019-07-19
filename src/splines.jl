@@ -7,7 +7,15 @@ struct BSpline{T,R<:Real,
     w::WV
 end
 
-BSpline(t::AbstractKnotSet) = BSpline(t, lgwt(t)...)
+"""
+    BSpline(t[, k′=3])
+
+Create the B-spline basis corresponding to the knot set `t`. `k′` is
+the highest polynomial order of operators for which it should be
+possible to compute the matrix elements exactly (via Gauß–Legendre
+quadrature). The default `k′=3` corresponds to operators O(x²).
+"""
+BSpline(t::AbstractKnotSet, k′::Integer=3) = BSpline(t, lgwt(t, k′)...)
 
 const RestrictedBSpline{T} = Union{RestrictedBasis{<:BSpline{T}},<:RestrictedQuasiArray{<:Any,<:Any,<:BSpline{T}}}
 const AdjointRestrictedBSpline{T} = Union{AdjointRestrictedBasis{<:BSpline{T}},<:AdjointRestrictedQuasiArray{<:Any,<:Any,<:BSpline{T}}}

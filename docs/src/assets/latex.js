@@ -37,7 +37,9 @@ require(['mathjax'], function(MathJax) {
                 exchange : ["{\\operator{K}_{#1}}",1],
                 diff : ["\\mathrm{d}#1\\,",1],
                 B : ["\\mathrm{B}_{#1,#2}", 2],
-                bmat : ["\\begin{bmatrix}#1\\end{bmatrix}", 1]
+                bmat : ["\\begin{bmatrix}#1\\end{bmatrix}", 1],
+                ceil : ["\\left\\lceil #1\\right\\rceil", 1],
+                floor : ["\\left\\lfloor #1\\right\\rfloor", 1]
             }
         }
     });

@@ -53,13 +53,16 @@ end
             t = LinearKnotSet(k, 0, 1, 1)
             @test length(t) == 2k
             @test collect(t) == vcat(fill(0, k), fill(1, k))
+            @test length(nonempty_intervals(t)) == 1
         end
         @testset "Simple endpoints" begin
             t = LinearKnotSet(k, 0, 1, k, 1, 1)
             @test length(t) == k+1
             @test collect(t) == range(0, stop=1, length=k+1)
+            @test length(nonempty_intervals(t)) == k
         end
     end
+    @test length(nonempty_intervals(ArbitraryKnotSet(3, [0.0, 1, 1, 3, 4, 6], 1, 3))) == 4
 
     @testset "Invalid order/multiplicities" begin
         @testset "Invalid order" begin
@@ -162,4 +165,11 @@ end
             end
         end
     end
+end
+
+@testset "Quadrature" begin
+    t = LinearKnotSet(1, 0, 1, 2)
+    x,w = BSplinesQuasi.lgwt(t, 3)
+    @test all(w .== 1/4)
+    @test x == [-1,1,-1,1]/(4*√3) + [1,1,3,3]/4
 end
