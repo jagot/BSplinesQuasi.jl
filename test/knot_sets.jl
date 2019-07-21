@@ -18,9 +18,8 @@ function within_interval_linear(x, interval)
         if e ∈ interval
             if k < i
                 i = k
-            else
-                j = k
             end
+            j = k
         end
     end
 
@@ -39,7 +38,7 @@ function test_within_interval(x, interval, expected=nothing)
     end
 
     result = :(within_interval($x, $interval))
-    expr = :($result == $expected)
+    expr = :($result == $expected || isempty($result) && isempty($expected))
     if !(@eval $expr)
         println("Looking for elements of $x ∈ $interval, got $(@eval $result), expected $expected")
         length(x) < 30 && println("    x = ", collect(enumerate(x)), "\n")
@@ -115,6 +114,43 @@ end
                     @testset "R=$R" for R=[:closed,:open]
                         for i = 1:1 # 20
                             interval = Interval{L,R}(minmax(rand(),rand())...)
+                            test_within_interval(x, interval)
+                        end
+                    end
+                end
+            end
+        end
+
+        @testset "Partially covered intervals" begin
+            k = 3
+            t = LinearKnotSet(k, 0, 1, 2)
+            @testset "$name, x = $x" for (name,x) in [
+                ("Outside left",range(-1,stop=-0.5,length=10)),
+                ("Touching left",range(-1,stop=0,length=10)),
+                ("Touching left-ϵ",range(-1,stop=0-eps(),length=10)),
+                ("Touching left+ϵ",range(-1,stop=0+eps(),length=10)),
+
+                ("Outside right",range(1.5,stop=2,length=10)),
+                ("Touching right",range(1,stop=2,length=10)),
+                ("Touching right-ϵ",range(1-eps(),stop=2,length=10)),
+                ("Touching right+ϵ",range(1+eps(),stop=2,length=10)),
+
+                ("Other right",range(0.5,stop=1,length=10)),
+                ("Other right-ϵ",range(0.5-eps(),stop=1,length=10)),
+                ("Other right+ϵ",range(0.5+eps(),stop=1,length=10)),
+
+                ("Complete", range(0,stop=1,length=10)),
+                ("Complete-ϵ", range(eps(),stop=1-eps(),length=10)),
+                ("Complete+ϵ", range(-eps(),stop=1+eps(),length=10)),
+
+                ("Left partial", range(-0.5,stop=0.6,length=10)),
+                ("Left", range(-0.5,stop=1.0,length=10)),
+                ("Right partial", range(0.5,stop=1.6,length=10)),
+                ("Right", range(0,stop=1.6,length=10))]
+                @testset "L=$L" for L=[:closed,:open]
+                    @testset "R=$R" for R=[:closed,:open]
+                        for i in nonempty_intervals(t)
+                            interval = Interval{L,R}(t[i], t[i+1])
                             test_within_interval(x, interval)
                         end
                     end

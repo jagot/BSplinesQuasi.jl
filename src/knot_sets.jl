@@ -106,9 +106,14 @@ function within_interval(x::AbstractRange, interval::Interval{L,R}) where {L,R}
     δx = step(x)
     l = leftendpoint(interval)
     r = rightendpoint(interval)
-    a = max(1, ceil(Int, (l-x[1])/δx) + 1)
-    b = min(N, ceil(Int, (r-x[1])/δx))
-    a + (a ≤ N && x[a] == l && L == :open):b + (b < N && x[b+1] == r && R == :closed)
+
+    a = max(ceil(Int, (l-x[1])/δx) + 1, 1)
+    a += (a ≤ N && (x[a] == l && L == :open || x[a] < l))
+
+    b = min(ceil(Int, (r-x[1])/δx) + 1, N)
+    b -= (b ≥ 1 && (x[b] == r && R == :open || x[b] > r))
+
+    a:b
 end
 
 """
