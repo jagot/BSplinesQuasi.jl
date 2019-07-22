@@ -6,17 +6,17 @@
 [[https://ci.appveyor.com/project/jagot/bsplinesquasi-jl][https://img.shields.io/appveyor/ci/jagot/bsplinesquasi-jl.svg?logo=appveyor]]
 [[https://codecov.io/gh/jagot/BSplinesQuasi.jl][https://codecov.io/gh/jagot/BSplinesQuasi.jl/branch/master/graph/badge.svg]]
 
-[[https://jagot.github.io/BSplinesQuasi.jl/dev/index.html][https://img.shields.io/badge/docs-dev-blue.svg]]
+[[https://jagot.github.io/BSplinesQuasi.jl/dev/][https://img.shields.io/badge/docs-dev-blue.svg]]
 
 #+PROPERTY: header-args:julia :session *julia-README*
 
-https://raw.githubusercontent.com/jagot/BSplinesQuasi.jl/gh-pages/dev/assets/logo.svg
+[[https://raw.githubusercontent.com/jagot/BSplinesQuasi.jl/gh-pages/dev/assets/logo.svg?sanitize=true]]
 
 Implementation of B-splines in the framework of [[https://github.com/JuliaApproximation/ContinuumArrays.jl][ContinuumArrays.jl]].
 
 The main application of this library is function approximation for the
 solution of differential equations. Furthermore, only functions of one
-variable are supported at the moment, i.e. `f(x)` (`f` may be scalar-
+variable are supported at the moment, i.e. =f(x)= (=f= may be scalar-
 or vector-valued, however). Functions of multiple variables would not
 be too difficult to implement (e.g. product grids), but the interface
 for that has not been defined yet, this should be done on the
@@ -25,7 +25,8 @@ for the different variables.
 
 Other common applications of B-splines such as knot insertion and
 smoothing of data are not yet implemented, i.e. the library is as of
-now mainly focused on chapters X–XI of de Boor (2001)[fn:1]; PRs are
+now mainly focused on chapters X–XI of de Boor (2001) [1]; PRs are
 welcome to implement the various applications of chapters XII–XVII.
 
-[fn:1] Carl de Boor (2001). /A Practical Guide to Splines/. New York: Springer. ISBN: 978-0-387-95366-3.
+1. Carl de Boor (2001). /A Practical Guide to Splines/. New York:
+   Springer. ISBN: 978-0-387-95366-3.
