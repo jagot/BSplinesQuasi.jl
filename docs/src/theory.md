@@ -191,3 +191,30 @@ following distribution quadrature points:
 
 Note that no quadrature points were generated for the intervals
 $[t_i,t_{i+1})$, $i=2,6,7$, since those intervals are empty.
+
+With the quadrature in place, it becomes very easy to compute the
+overlap matrix:
+
+$$\begin{equation}
+\mat{S}_{ij,k} \defd \braket{\B{i}{k}}{\B{j}{k}}
+\approx \sum_l w_l \conj{\B{i}{k}}(x_l) \B{j}{k}(x_l).
+\end{equation}$$
+
+For the knot set above, we find
+
+$$\mat{S} =
+\bmat{0.6 &       0.222222 &   0.0444444 &  0.0 &        0.0\\
+ 0.222222 &  0.466667 &   0.307407 &   0.0037037 &  0.0\\
+ 0.0444444 &  0.307407 &   0.962963 &   0.307407 &   0.0444444\\
+ 0.0 &       0.0037037 &  0.307407 &   0.466667 &   0.222222\\
+ 0.0 &       0.0 &        0.0444444 &  0.222222 &   0.4},$$
+
+from which we see that the individual B-splines $\B{i}{k}$ are
+non-zero only on the interval $[t_i,t_{i+k})$, except for the last
+B-spline that is non-zero also at the end of the interval,
+$[t_i,t_{i+k}]$.
+
+If we want to employ two B-spline sets of different orders, we must
+make sure they share the same knot set and quadrature points (and that
+the latter support the combined polynomial order).
+
