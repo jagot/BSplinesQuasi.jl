@@ -1,5 +1,5 @@
 using IntervalSets
-import BSplinesQuasi: RightContinuous, within_interval, within_support
+import BSplinesQuasi: RightContinuous, find_interval, within_interval, within_support
 
 """
     within_interval_linear(x, interval)
@@ -156,8 +156,8 @@ end
                 ("Touching right+ϵ",range(1+eps(),stop=2,length=10)),
 
                 ("Other right",range(0.5,stop=1,length=10)),
-                ("Other right-ϵ",range(0.5-eps(),stop=1,length=10)),
-                ("Other right+ϵ",range(0.5+eps(),stop=1,length=10)),
+                ("Other right-ϵ",range(0.5-eps(0.5),stop=1,length=10)),
+                ("Other right+ϵ",range(0.5+eps(0.5),stop=1,length=10)),
 
                 ("Complete", range(0,stop=1,length=10)),
                 ("Complete-ϵ", range(eps(),stop=1-eps(),length=10)),
@@ -179,6 +179,33 @@ end
                 end
             end
         end
+    end
+
+    @testset "Finding intervals" begin
+        t = ArbitraryKnotSet(3, [0.0, 1, 1, 3, 4, 6], 1, 3)
+        R = BSpline(t)
+        # Test without specifying initial interval
+        @test find_interval(t, 0.5) == 1
+        for (i,xs) in enumerate([[0, 0.5, 1.0-eps()],
+                                 [],
+                                 [1.0, 2.0, 3.0-eps(3.0)],
+                                 [3, 3.5, 4.0-eps(4.0)],
+                                 [4, 5, 6.0-eps(6.0),6]])
+            for j in [1,i] # Test starting from the beginning, and from the interval itself
+                for x in xs
+                    result = :(find_interval($t, $x, $j))
+                    res = @eval $result
+                    expr = :($result == $i)
+                    (@eval $expr) ||
+                        println("Expected to find $x ∈ interval #$i, got $(isnothing(res) ? "nothing" : res)")
+                    @eval @test $expr
+                    # @test find_interval(t, x) ==
+                    find_interval(t, x)
+                    within_support(x:x, t, i)[1][2]
+                end
+            end
+        end
+        @test isnothing(find_interval(t, 0.5, 2))
     end
 
     @testset "Support of Heavyside splines" begin

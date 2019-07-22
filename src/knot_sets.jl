@@ -5,7 +5,7 @@ import Base: first, last, length,
 
 # * AbstractKnotSet
 """
-    AbstractKnotSet{T,k,ml,mr}
+    AbstractKnotSet{k,ml,mr,T}
 
 Abstract base for B-spline knot sets. `T` is the `eltype` of the knot
 set, `k` is the order of the piecewise polynomials (order = degree +
@@ -79,9 +79,9 @@ nonempty_intervals(t::AbstractKnotSet) =
     [j for j in 1:length(t)-1
      if t[j] ≠ t[j+1]]
 
-function find_interval(t::AbstractKnotSet{T,k,ml,mr}, x, i=ml) where {T,k,ml,mr}
-    (x < first(t) || x > last(t)) && return nothing
-    x == last(t) && return ml + length(t.t) - 1
+function find_interval(t::AbstractKnotSet{k,ml,mr,T}, x, i=ml) where {T,k,ml,mr}
+    (x < first(t) || x > last(t) || i > length(t) || x < t[i]) && return nothing
+    x == last(t) && return length(t) - mr
     for r ∈ i:length(t)
         t[r] > x && return r-1
     end
@@ -89,11 +89,6 @@ function find_interval(t::AbstractKnotSet{T,k,ml,mr}, x, i=ml) where {T,k,ml,mr}
 end
 
 const RightContinuous{T} = Interval{:closed,:open,T}
-
-function lfloor(::Type{T}, r) where T
-    i = floor(T, r)
-    i == r ? i - 1 : i
-end
 
 """
     within_interval(x, interval)
