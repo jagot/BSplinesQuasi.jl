@@ -10,7 +10,7 @@ that fall within `interval`. This loops through all elements of `x`
 elements.
 """
 function within_interval_linear(x, interval)
-    @assert issorted(x)
+    @assert issorted(x) || issorted(reverse(x))
     N = length(x)+1
     i = N
     j = 0
@@ -26,11 +26,19 @@ function within_interval_linear(x, interval)
     i:j
 end
 
-function test_within_interval(x, interval, expected=nothing)
+function test_within_interval(x, interval, expected=nothing; reversed=true)
+    if reversed
+        x = reverse(x)
+    end
+    N = length(x)
+
     linear_expected = within_interval_linear(x, interval)
     if isnothing(expected)
         expected = linear_expected
     else
+        if reversed
+            expected = (N-expected[end]+1):(N-expected[1]+1)
+        end
         # This is mostly a sanity check to test if the expectations
         # are actually correct.
         expected ≠ linear_expected &&
@@ -95,26 +103,38 @@ end
         x = range(a, stop=b, length=21)
         @testset "Interval coverage" begin
             @testset "Two intervals" begin
-                test_within_interval(x, 0..0.5, 1:11)
-                test_within_interval(x, RightContinuous(0,0.5))
-                test_within_interval(x, RightContinuous(0,0.5))
-                test_within_interval(x, RightContinuous(0.25,0.5))
-                test_within_interval(x, RightContinuous(0.25,0.5))
+                @testset "Reversed: $reversed" for reversed in [false, true]
+                    test_within_interval(x, 0..0.5, 1:11, reversed=reversed)
+                end
+                @testset "L=$L" for L=[:closed,:open]
+                    @testset "R=$R" for R=[:closed,:open]
+                        @testset "Reversed: $reversed" for reversed in [false, true]
+                            test_within_interval(x, Interval{L,R}(0,0.5), reversed=reversed)
+                            test_within_interval(x, Interval{L,R}(0.25,0.5), reversed=reversed)
+                        end
+                    end
+                end
             end
             @testset "Three intervals" begin
-                test_within_interval(x, RightContinuous(0,1/3), 1:7)
-                test_within_interval(x, RightContinuous(1/3,2/3), 8:14)
-                test_within_interval(x, 2/3..1, 15:21)
+                @testset "Reversed: $reversed" for reversed in [false, true]
+                    test_within_interval(x, RightContinuous(0,1/3), 1:7, reversed=reversed)
+                    test_within_interval(x, RightContinuous(1/3,2/3), 8:14, reversed=reversed)
+                    test_within_interval(x, 2/3..1, 15:21, reversed=reversed)
+                end
             end
             @testset "Open interval" begin
-                test_within_interval(x, OpenInterval(0.2,0.4), 6:8)
+                @testset "Reversed: $reversed" for reversed in [false, true]
+                    test_within_interval(x, OpenInterval(0.2,0.4), 6:8, reversed=reversed)
+                end
             end
             @testset "Random intervals" begin
                 @testset "L=$L" for L=[:closed,:open]
                     @testset "R=$R" for R=[:closed,:open]
-                        for i = 1:1 # 20
-                            interval = Interval{L,R}(minmax(rand(),rand())...)
-                            test_within_interval(x, interval)
+                        @testset "Reversed: $reversed" for reversed in [false, true]
+                            for i = 1:20
+                                interval = Interval{L,R}(minmax(rand(),rand())...)
+                                test_within_interval(x, interval, reversed=reversed)
+                            end
                         end
                     end
                 end
@@ -149,55 +169,61 @@ end
                 ("Right", range(0,stop=1.6,length=10))]
                 @testset "L=$L" for L=[:closed,:open]
                     @testset "R=$R" for R=[:closed,:open]
-                        for i in nonempty_intervals(t)
-                            interval = Interval{L,R}(t[i], t[i+1])
-                            test_within_interval(x, interval)
+                        @testset "Reversed: $reversed" for reversed in [false, true]
+                            for i in nonempty_intervals(t)
+                                interval = Interval{L,R}(t[i], t[i+1])
+                                test_within_interval(x, interval, reversed=reversed)
+                            end
                         end
                     end
                 end
             end
         end
+    end
 
-        @testset "Support of Heavyside splines" begin
-            t = LinearKnotSet(1, a, b, 4)
+    @testset "Support of Heavyside splines" begin
+        a,b = 0,1
+        x = range(a, stop=b, length=21)
+        t = LinearKnotSet(1, a, b, 4)
+        supports = [within_support(x, t, j)
+                    for j = 1:numfunctions(t)]
+        @test length(supports) == 4
+        # Each basis function should cover one interval only (since order = 1).
+        @test all(length.(supports) .== 1)
+        # Test that all elements of x are covered by the basis
+        # functions, and that none of the basis functions overlap.
+        @test first.(first.(supports)) == [1:5, 6:10, 11:15, 16:21]
+    end
+
+    @testset "Support of linear splines" begin
+        a,b = 0,1
+        x = range(a, stop=b, length=21)
+        @testset "Simple multiplicity" begin
+            t = LinearKnotSet(2, a, b, 2, 1, 1)
             supports = [within_support(x, t, j)
                         for j = 1:numfunctions(t)]
-            @test length(supports) == 4
-            # Each basis function should cover one interval only (since order = 1).
-            @test all(length.(supports) .== 1)
-            # Test that all elements of x are covered by the basis
-            # functions, and that none of the basis functions overlap.
-            @test first.(first.(supports)) == [1:5, 6:10, 11:15, 16:21]
+            @test length(supports) == 1
+            @test supports[1] == [(1:10,1), (11:21,2)]
         end
-
-        @testset "Support of linear splines" begin
-            @testset "Simple multiplicity" begin
-                t = LinearKnotSet(2, a, b, 2, 1, 1)
+        @testset "Full multiplicity" begin
+            @testset "#intervals = 2" begin
+                t = LinearKnotSet(2, a, b, 2)
                 supports = [within_support(x, t, j)
                             for j = 1:numfunctions(t)]
-                @test length(supports) == 1
-                @test supports[1] == [(1:10,1), (11:21,2)]
+                @test length(supports) == 3
+                @test supports[1] == [(1:10,2)]
+                @test supports[2] == [(1:10,2), (11:21,3)]
+                @test supports[3] == [(11:21,3)]
             end
-            @testset "Full multiplicity" begin
-                @testset "#intervals = 2" begin
-                    t = LinearKnotSet(2, a, b, 2)
-                    supports = [within_support(x, t, j)
-                                for j = 1:numfunctions(t)]
-                    @test length(supports) == 3
-                    @test supports[1] == [(1:10,2)]
-                    @test supports[2] == [(1:10,2), (11:21,3)]
-                    @test supports[3] == [(11:21,3)]
-                end
-                @testset "#intervals = 3" begin
-                    t = LinearKnotSet(2, a, b, 3)
-                    supports = [within_support(x, t, j)
-                                for j = 1:numfunctions(t)]
-                    @test length(supports) == 4
-                    @test supports[1] == [(1:7,2)]
-                    @test supports[2] == [(1:7,2), (8:14,3)]
-                    @test supports[3] == [(8:14,3), (15:21,4)]
-                    @test supports[4] == [(15:21,4)]
-                end
+            @testset "#intervals = 3" begin
+                t = LinearKnotSet(2, a, b, 3)
+                supports = [within_support(x, t, j)
+                            for j = 1:numfunctions(t)]
+                @test length(supports) == 4
+                @test supports[1] == [(1:7,2)]
+                @test supports[2] == [(1:7,2), (8:14,3)]
+                @test supports[3] == [(8:14,3), (15:21,4)]
+                @test supports[4] == [(15:21,4)]
             end
         end
     end
