@@ -35,7 +35,7 @@ end
 function cardinal_splines()
     a,b = 1.0,6.0
     x = range(a, stop=b, length=1001)
-    figure("splines",figsize=(7,9))
+    figure("cardinal splines",figsize=(7,9))
     clf()
     t = 0
     for k = 1:5
@@ -211,6 +211,93 @@ function quadrature_points()
     savefig("docs/src/figures/quadrature-points.svg")
 end
 
+function function_interpolation()
+    t = LinearKnotSet(7, 0, 7, 10)
+    B = BSpline(t)
+    x = range(0, stop=7, length=301)
+    χ = B[x, :]
+    c = B \ sin
+    i = 1:size(B,2)
+
+    figure("function interpolation",figsize=(7,9))
+    clf()
+    subplot(311)
+    plot(x, χ*c)
+    plot([mean_position(x, view(χ, :, j)) for j in i], c, "s-")
+    no_tick_labels()
+    subplot(312)
+    plot(x, χ*c-sin.(x))
+    ylabel("Error")
+    no_tick_labels()
+    subplot(313)
+    plot(x, χ)
+    xlabel(L"x")
+    tight_layout()
+    savefig("docs/src/figures/function-interpolation.svg")
+end
+
+function restricted_basis_interpolation()
+    t = LinearKnotSet(7, 0.0, 1.0, 6)
+    x = range(first(t), stop=last(t), length=300)[2:end-1]
+
+    B = BSpline(t,3)
+    B̃ = B[:,2:end-1]
+
+    f1 = x -> sin(2π*x)
+    f2 = x -> cos(2π*x)
+
+    c1 = B \ f1
+    c2 = B \ f2
+
+    c̃1 = B̃ \ f1
+    c̃2 = B̃ \ f2
+
+    χ = B[x, :]
+    χ̃ = B̃[x, :]
+    x_avg = [mean_position(x, view(χ, :, j)) for j in 1:size(B,2)]
+    x̃_avg = [mean_position(x, view(χ̃, :, j)) for j in 1:size(B̃,2)]
+
+    figure("restricted basis interpolation", figsize=(7,9))
+    clf()
+    subplot(321)
+    l=plot(x, χ*c1)[1]
+    plot(x_avg, c1, "s:", color=l.get_color())
+    l=plot(x, χ*c2)[1]
+    plot(x_avg, c2, "s:", color=l.get_color())
+    no_tick_labels()
+    subplot(322)
+    l=plot(x, χ̃*c̃1)[1]
+    plot(x̃_avg, c̃1, "s:", color=l.get_color())
+    l=plot(x, χ̃*c̃2)[1]
+    plot(x̃_avg, c̃2, "s:", color=l.get_color())
+    axes_labels_opposite(:y)
+    no_tick_labels()
+    subplot(324)
+    semilogy(x, abs.(χ̃*c̃1 - f1.(x)))
+    semilogy(x, abs.(χ̃*c̃2 - f2.(x)))
+    axes_labels_opposite(:y)
+    yl = ylim()
+    no_tick_labels()
+    ylabel("Error")
+    subplot(323)
+    semilogy(x, abs.(χ*c1 - f1.(x)))
+    semilogy(x, abs.(χ*c2 - f2.(x)))
+    no_tick_labels()
+    ylabel("Error")
+    ylim(yl)
+    subplot(325)
+    plot(x, χ)
+    xlabel(L"x")
+    yl = ylim()
+    subplot(326)
+    plot(x, χ̃)
+    axes_labels_opposite(:y)
+    ylim(yl)
+    xlabel(L"x")
+    tight_layout()
+    savefig("docs/src/figures/restricted-basis-interpolation.svg")
+end
+
 mkpath("docs/src/figures")
 cardinal_splines()
 discontinuous_splines()
@@ -219,3 +306,5 @@ spline1d()
 spline2d()
 logo()
 quadrature_points()
+function_interpolation()
+restricted_basis_interpolation()

@@ -209,4 +209,15 @@ Base.show(io::IO, spline::SplineVector) =
 Base.show(io::IO, spline::SplineMatrix) =
     write(io, "$(size(spline, 2))d spline on $(spline.applied.args[1])")
 
+# * Function interpolation
+
+Base.:(\ )(B::BSpline, f::Function) = B.B \ f.(B.x)
+function Base.:(\ )(B::RestrictedBSpline, f::Function)
+    # B′,restriction = B.applied.args
+    # a,b = restriction_extents(restriction)
+    x = locs(B)
+    V = B[x,:]
+    V \ f.(x)
+end
+
 export BSpline

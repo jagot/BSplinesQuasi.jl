@@ -13,6 +13,7 @@ makedocs(
             "Basis creation" => "usage.md",
             "Splines" => [
                 "Spline creation & evaluation" => "splines.md",
+                "Function approximation" => "function_approximation.md",
             ]
         ],
     ],
