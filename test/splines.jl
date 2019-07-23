@@ -5,6 +5,24 @@
 
         @test all(B[0.0, :] .== 0)
         @test all(B[0.0:0.5:1.0, :][1, :] .== 0)
+
+        @test B.B == B[B.x,:]
+        # Reference generated using AnalyticBSplines.jl
+        @test B.S ≈ [ 3//5    2//9     2//45    0//1    0//1
+                      2//9    7//15   83//270   1//270  0//1
+                      2//45  83//270  26//27   83//270  2//45
+                      0//1    1//270  83//270   7//15   2//9
+                      0//1    0//1     2//45    2//9    2//5]
+    end
+
+    @testset "Cardinal splines" begin
+        for k = 1:5
+            t = ArbitraryKnotSet(k, 1.0:6.0, 1, 1)
+            R = BSpline(t)
+            @test size(R.B,2) == 6-k
+            @test size(R.S) == (6-k,6-k)
+            @test (bandwidth(R.S,1),bandwidth(R.S,2)) == (k-1,k-1)
+        end
     end
 
     @testset "Evaluate B-splines" begin

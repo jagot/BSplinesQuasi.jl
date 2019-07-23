@@ -1,8 +1,11 @@
 using BSplinesQuasi
 using Test
 using LinearAlgebra
+using BandedMatrices
 using SparseArrays
 using Compat
+
+import ContinuumArrays: ℵ₁
 
 function vecdist(a::AbstractVector, b::AbstractVector,
                  ϵ = eps(eltype(a)))
