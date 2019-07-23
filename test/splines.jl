@@ -96,6 +96,21 @@
         end
     end
 
+    @testset "Mass matrices" begin
+        k = 4
+        t = LinearKnotSet(k, 0, 1, 5)
+        B = BSpline(t)
+        @test B'B == B.S
+
+        B̃ = B[:,2:end-1]
+        @test B̃'B̃ == B.S[2:end-1,2:end-1]
+
+        @test B̃'B == B.S[2:end-1,:]
+
+        # TODO: Test mass matrices between different B-splines bases
+        # but same knot set/quadrature points.
+    end
+
     @testset "Function interpolation" begin
         B = BSpline(LinearKnotSet(7, 0, 1, 10))
         c = B \ x -> sin(2π*x)
