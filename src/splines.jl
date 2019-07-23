@@ -86,7 +86,7 @@ end
 function show(io::IO, B::RestrictedQuasiArray{T,2,BSpline{T}}) where T
     B′,restriction = B.applied.args
     a,b = restriction_extents(restriction)
-    N = length(B′.x)
+    N = numfunctions(B′.t)
     show(io, B′)
     write(io, ", restricted to basis functions $(1+a)..$(N-b) $(a>0 || b>0 ? "⊂" : "⊆") 1..$(N)")
 end
@@ -97,11 +97,13 @@ restriction_extents(B::RestrictedQuasiArray{<:Any,2,<:BSpline}) =
 
 locs(B::BSpline) = B.x
 
-function locs(B::RestrictedQuasiArray{<:Any,2,<:BSpline})
-    B′,restriction = B.applied.args
-    a,b = BSplineQuasi.restriction_extents(restriction)
-    B′.x[1+a:end-b]
-end
+locs(B::RestrictedQuasiArray{<:Any,2,<:BSpline}) =
+    first(B.applied.args).x
+
+weights(B::BSpline) = B.w
+
+weights(B::RestrictedQuasiArray{<:Any,2,<:BSpline}) =
+    first(B.applied.args).w
 
 IntervalSets.leftendpoint(B::BSpline) = B.x[1]
 IntervalSets.rightendpoint(B::BSpline) = B.x[end]
@@ -175,13 +177,23 @@ function getindex(B::BSpline{T}, x::AbstractRange, sel::AbstractVector) where T
     χ
 end
 
+@inline function Base.getindex(B::RestrictedBasis{<:BSpline{T}}, x::Real, sel::AbstractVector) where {T}
+    B′,restriction = B.args
+    B′[x,sel .+ restriction.l]
+end
+
 function getindex(B::BSpline{T}, x::AbstractRange, j::Integer) where T
     χ = spzeros(T, length(x))
     basis_function!(χ, B, x, j)
     χ
 end
 
-getindex(B::BSpline{T}, x, ::Colon) where T =
+@inline function Base.getindex(B::RestrictedBasis{<:BSpline{T}}, x::Real, j::Integer) where {T}
+    B′,restriction = B.args
+    B′[x,j+restriction.l]
+end
+
+getindex(B::BSplineOrRestricted, x, ::Colon) =
     getindex(B, x, axes(B,2))
 
 # * Types

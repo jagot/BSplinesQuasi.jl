@@ -55,6 +55,16 @@
         end
     end
 
+    @testset "Restricted basis" begin
+        t = LinearKnotSet(3, 0.0, 1.0, 6)
+        B = BSpline(t,3)
+        B̃ = B[:,2:end-1]
+        @test size(B̃) == (ℵ₁, 6)
+        χ̃ = B̃[BSplinesQuasi.locs(B), :]
+        @test size(χ̃,2) == 6
+        @test χ̃ == B.B[:,2:end-1]
+    end
+
     @testset "Evaluate spline" begin
         @testset "Linear knot set" begin
             k = 4
