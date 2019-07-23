@@ -9,7 +9,12 @@ makedocs(
     pages = [
         "Home" => "index.md",
         "Theory" => "theory.md",
-        "Usage" => "usage.md",
+        "Usage" => [
+            "Basis creation" => "usage.md",
+            "Splines" => [
+                "Spline creation & evaluation" => "splines.md",
+            ]
+        ],
     ],
     format = Documenter.HTML(assets = ["assets/latex.js"]),
 )
