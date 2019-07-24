@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Function approximation · BSplinesQuasi</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/><script src="../assets/latex.js"></script></head><body><nav class="toc"><a href="../"><img class="logo" src="../assets/logo.svg" alt="BSplinesQuasi logo"/></a><h1>BSplinesQuasi</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li><a class="toctext" href="../theory/">Theory</a></li><li><span class="toctext">Usage</span><ul><li><a class="toctext" href="../usage/">Basis creation</a></li><li><span class="toctext">Splines</span><ul><li><a class="toctext" href="../splines/">Spline creation &amp; evaluation</a></li><li class="current"><a class="toctext" href>Function approximation</a><ul class="internal"></ul></li></ul></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li>Usage</li><li>Splines</li><li><a href>Function approximation</a></li></ul><a class="edit-page" href="https://github.com/jagot/BSplinesQuasi.jl/blob/master/docs/src/function_approximation.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Function approximation</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Function-approximation-1" href="#Function-approximation-1">Function approximation</a></h1><p>To approximate a mathematical function on a B-spline basis, we can simply <em>solve</em> for the coefficients:</p><pre><code class="language-julia">julia&gt; t = LinearKnotSet(7, 0, 7, 10);
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Function approximation · BSplinesQuasi</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/><script src="../assets/latex.js"></script></head><body><nav class="toc"><a href="../"><img class="logo" src="../assets/logo.svg" alt="BSplinesQuasi logo"/></a><h1>BSplinesQuasi</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li><a class="toctext" href="../theory/">Theory</a></li><li><span class="toctext">Usage</span><ul><li><a class="toctext" href="../usage/">Basis creation</a></li><li><span class="toctext">Splines</span><ul><li><a class="toctext" href="../splines/">Spline creation &amp; evaluation</a></li><li class="current"><a class="toctext" href>Function approximation</a><ul class="internal"><li><a class="toctext" href="#Smooth-interpolation-of-measurement-data-1">Smooth interpolation of measurement data</a></li></ul></li></ul></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li>Usage</li><li>Splines</li><li><a href>Function approximation</a></li></ul><a class="edit-page" href="https://github.com/jagot/BSplinesQuasi.jl/blob/master/docs/src/function_approximation.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Function approximation</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Function-approximation-1" href="#Function-approximation-1">Function approximation</a></h1><p>To approximate a mathematical function on a B-spline basis, we can simply <em>solve</em> for the coefficients:</p><pre><code class="language-julia">julia&gt; t = LinearKnotSet(7, 0, 7, 10);
 
 julia&gt; B = BSpline(t)
 BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 7 on 0.0..7.0 (10 intervals)
@@ -87,4 +87,45 @@ julia&gt; c̃2 = B̃ \ f2
  -0.6709944899983946
   1.4520927974960847
  -0.1887269248976696
-  2.1869627421644977</code></pre><p><img src="../figures/restricted-basis-interpolation.svg" alt="Reconstruction of function interpolated on restricted bases"/></p><p>As is to be expected, the sine function is perfectly reconstructed in both cases, whilst the cosine fails spectactularly in the restricted case.</p><footer><hr/><a class="previous" href="../splines/"><span class="direction">Previous</span><span class="title">Spline creation &amp; evaluation</span></a></footer></article></body></html>
+  2.1869627421644977</code></pre><p><img src="../figures/restricted-basis-interpolation.svg" alt="Reconstruction of function interpolated on restricted bases"/></p><p>As is to be expected, the sine function is perfectly reconstructed in both cases, whilst the cosine fails spectactularly in the restricted case.</p><h2><a class="nav-anchor" id="Smooth-interpolation-of-measurement-data-1" href="#Smooth-interpolation-of-measurement-data-1">Smooth interpolation of measurement data</a></h2><p>If instead of a mathematical function, we have a dataset that we wish to interpolate smoothly, we accomplish that quite simply by evaluating the B-splines on the values of <span>$x$</span> where we know the data. We must beware of overfitting though, which is illustrated below. First, we generate some “measurement” data:</p><pre><code class="language-julia">julia&gt; f = x -&gt; sin(2π*x)
+#9 (generic function with 1 method)
+
+julia&gt; rng = MersenneTwister(123);
+
+julia&gt; N = 10
+10
+
+julia&gt; x = clamp.(sort(range(0, stop=1, length=N) + 0.1(2rand(rng,N) .- 1)), 0, 1);
+
+julia&gt; y = f.(x) + 0.1(2rand(rng,N) .- 1);</code></pre><p>We then construct two B-splines sets of different orders, but on the same domain:</p><pre><code class="language-julia">julia&gt; t3 = LinearKnotSet(3, 0.0, 1.0, 6);
+
+julia&gt; t4 = LinearKnotSet(4, 0.0, 1.0, 6);
+
+julia&gt; B3 = BSpline(t3,0)
+BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 3 (parabolic) on 0.0..1.0 (6 intervals)
+
+julia&gt; B4 = BSpline(t4,0)
+BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 4 (cubic) on 0.0..1.0 (6 intervals)
+
+julia&gt; c3 = B3[x,:] \ y
+8-element Array{Float64,1}:
+  0.09059408654085727
+  0.3193964537812517
+  1.2724504917348318
+  0.48266890171285365
+ -0.5585179917405891
+ -1.2049827692771158
+ -0.5094743222571649
+ -0.27749270716604346
+
+julia&gt; c4 = B4[x,:] \ y
+9-element Array{Float64,1}:
+  2.32388044050468
+ -1.1504112365148684
+  1.4118937176980075
+  0.9380508194440034
+  0.005584178064480077
+ -1.060186123070226
+ -1.1044261039469099
+ -0.1538696429680995
+ -1.00556852643735</code></pre><p><img src="../figures/smooth-interpolation.svg" alt="Smooth interpolation"/></p><footer><hr/><a class="previous" href="../splines/"><span class="direction">Previous</span><span class="title">Spline creation &amp; evaluation</span></a></footer></article></body></html>
