@@ -5,6 +5,7 @@ using PyPlotRecipes
 using PyCall
 PathEffects = pyimport("matplotlib.patheffects")
 using Statistics
+using Random
 using Colors
 
 using LinearAlgebra
@@ -298,6 +299,38 @@ function restricted_basis_interpolation()
     savefig("docs/src/figures/restricted-basis-interpolation.svg")
 end
 
+function smooth_interpolation()
+    f = x -> sin(2π*x)
+
+    rng = MersenneTwister(123);
+
+    N = 10
+    x = clamp.(sort(range(0, stop=1, length=N) + 0.1(2rand(rng,N) .- 1)), 0, 1);
+    y = f.(x) + 0.1(2rand(rng,N) .- 1);
+
+    t3 = LinearKnotSet(3, 0.0, 1.0, 6);
+    t4 = LinearKnotSet(4, 0.0, 1.0, 6);
+    B3 = BSpline(t3,0)
+    B4 = BSpline(t4,0)
+
+    c3 = B3[x,:] \ y
+    c4 = B4[x,:] \ y
+
+    r = range(first(t3), stop=last(t3), length=300)
+    χ3 = B3[r,:]
+    χ4 = B4[r,:]
+
+    figure("smooth interpolation")
+    clf()
+    plot(x, y, "s", label="Samples")
+    plot(r, χ3*c3, label="3rd order spline")
+    plot(r, χ4*c4, label="4th order spline")
+    plot(r, f.(r), "--", label=L"\sin(2\pi x)")
+    legend()
+    tight_layout()
+    savefig("docs/src/figures/smooth-interpolation.svg")
+end
+
 mkpath("docs/src/figures")
 cardinal_splines()
 discontinuous_splines()
@@ -308,3 +341,4 @@ logo()
 quadrature_points()
 function_interpolation()
 restricted_basis_interpolation()
+smooth_interpolation()

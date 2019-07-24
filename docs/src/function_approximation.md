@@ -125,3 +125,65 @@ julia> c̃2 = B̃ \ f2
 As is to be expected, the sine function is perfectly reconstructed in
 both cases, whilst the cosine fails spectactularly in the restricted
 case.
+
+## Smooth interpolation of measurement data
+
+If instead of a mathematical function, we have a dataset that we wish
+to interpolate smoothly, we accomplish that quite simply by evaluating
+the B-splines on the values of $x$ where we know the data. We must
+beware of overfitting though, which is illustrated below. First, we
+generate some “measurement” data:
+
+```julia
+julia> f = x -> sin(2π*x)
+#9 (generic function with 1 method)
+
+julia> rng = MersenneTwister(123);
+
+julia> N = 10
+10
+
+julia> x = clamp.(sort(range(0, stop=1, length=N) + 0.1(2rand(rng,N) .- 1)), 0, 1);
+
+julia> y = f.(x) + 0.1(2rand(rng,N) .- 1);
+```
+
+We then construct two B-splines sets of different orders, but on the
+same domain:
+
+```julia
+julia> t3 = LinearKnotSet(3, 0.0, 1.0, 6);
+
+julia> t4 = LinearKnotSet(4, 0.0, 1.0, 6);
+
+julia> B3 = BSpline(t3,0)
+BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 3 (parabolic) on 0.0..1.0 (6 intervals)
+
+julia> B4 = BSpline(t4,0)
+BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 4 (cubic) on 0.0..1.0 (6 intervals)
+
+julia> c3 = B3[x,:] \ y
+8-element Array{Float64,1}:
+  0.09059408654085727
+  0.3193964537812517
+  1.2724504917348318
+  0.48266890171285365
+ -0.5585179917405891
+ -1.2049827692771158
+ -0.5094743222571649
+ -0.27749270716604346
+
+julia> c4 = B4[x,:] \ y
+9-element Array{Float64,1}:
+  2.32388044050468
+ -1.1504112365148684
+  1.4118937176980075
+  0.9380508194440034
+  0.005584178064480077
+ -1.060186123070226
+ -1.1044261039469099
+ -0.1538696429680995
+ -1.00556852643735
+```
+
+![Smooth interpolation](figures/smooth-interpolation.svg)
