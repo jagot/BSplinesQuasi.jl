@@ -116,6 +116,7 @@ linear combination of B-splines of order $k-1$. We can generalize
 this, to reexpress $f(x)$ as a linear combination of B-splines of
 order $k-j$, with expansion coefficients
 $$\begin{equation}
+\label{eqn:dB.X.26}
 \tag{dB.X.26}
 \alpha_r^{[j+1]}(x) \defd
 \begin{cases}
@@ -190,7 +191,10 @@ following distribution quadrature points:
 ![Quadrature points](figures/quadrature-points.svg)
 
 Note that no quadrature points were generated for the intervals
-$[t_i,t_{i+1})$, $i=2,6,7$, since those intervals are empty.
+$[t_i,t_{i+1})$, $i=2,6,7$, since those intervals are empty. Also note
+that the quadrature points are _interior_, i.e. the domain boundaries
+are not included. That can be useful for dealing with functions which
+are singular/undefined at the boundaries.
 
 With the quadrature in place, it becomes very easy to compute the
 overlap matrix:
@@ -218,3 +222,128 @@ If we want to employ two B-spline sets of different orders, we must
 make sure they share the same knot set and quadrature points (and that
 the latter support the combined polynomial order).
 
+## Derivatives
+
+A property of B-splines is that the first derivative of a spline is given by
+
+$$\begin{equation}
+\tag{dB.X.12}
+\partial
+\sum_j \alpha_j\B{j}{k} =
+(k-1)\sum_j
+\frac{\alpha_j - \alpha_{j-1}}{t_{j+k-1}-t_j}\B{j}{k-1},
+\end{equation}$$
+
+and by extension
+
+$$\begin{equation}
+\tag{dB.X.15}
+\partial^m
+\sum_j \alpha_j\B{j}{k} =
+\sum_j \alpha_j^{(m+1)}\B{j}{j-m},
+\end{equation}$$
+
+where
+
+$$\begin{equation}
+\label{eqn:dB.X.16}
+\tag{dB.X.16}
+\alpha_j^{(m+1)} \defd
+\begin{cases}
+\alpha_r, & m = 0,\\[2ex]
+\displaystyle
+\frac{\alpha_r^{(m)} - \alpha_{r-1}^{(m)}}{(t_{r+k-1}-t_r)/(k-m)}, & m > 0.
+\end{cases}
+\end{equation}$$
+
+Comparing with [de Boor's algorithm](@ref), above,
+$\eqref{eqn:dB.X.16}$ is very similar in structure to
+$\eqref{eqn:dB.X.26}$, which means for calculating the $m$th
+derivative, we can apply $\eqref{eqn:dB.X.16}$ for $j\in[1,m]$, and
+then switch to $\eqref{eqn:dB.X.26}$ for $j\in[m+1,k-1]$.
+
+## Solving equations
+
+For any equation of the form
+
+$$\begin{equation}
+\operator{L}f = g,
+\end{equation}$$
+
+where $\operator{L}$ is a linear functional, we can solve the equation
+approximately by expanding $f$ and $g$ in terms of B-splines:
+
+$$\begin{equation}
+\begin{aligned}
+f &= \sum_j \ket{\B{j}{k}}f_j \defd B\vec{f},\\
+g &= \sum_j \ket{\B{j}{k}}g_j \defd B\vec{g},
+\end{aligned}
+\end{equation}$$
+
+where
+
+$$\begin{equation}
+B \defd \bmat{\ket{\B{1}{k}} & \ket{\B{2}{k}} & \dots & \ket{\B{n}{k}}}.
+\end{equation}$$
+
+The equation is now transformed to
+
+$$\begin{equation}
+\operator{L}B\vec{f} = B\vec{g}.
+\end{equation}$$
+
+The left-hand side is trivially in the space $\space{P}_{t,k}$,
+whereas is not necessary true for the right-hand side, i.e. the
+functional $\operator{L}$ may take $f$ out of the space. We can
+project the equation into the space $\space{P}_{t,k}$ by
+left-multiplying by the projector $BB^H$:
+
+$$\begin{equation}
+\begin{aligned}
+BB^H\operator{L}B\vec{f} &= BB^HB\vec{g},\\
+\iff
+B\mat{L}\vec{f} &= B\mat{S}\vec{g},
+\end{aligned}
+\end{equation}$$
+
+where
+
+$$\begin{aligned}
+\mat{L} &\defd B^H\operator{L}B,\\
+\mat{S} &\defd B^HB.
+\end{aligned}$$
+
+Since, although the B-splines are non-orthogonal, they are _linearly
+independent_, the equation has to hold for any $\ket{\B{i}{k}}$, and
+we get
+
+$$\begin{equation}
+\mat{L}\vec{f} = \mat{S}\vec{g}.
+\end{equation}$$
+
+If for instance, $g=\lambda f$, we get
+
+$$\begin{equation}
+(\mat{L}-\lambda\mat{S})\vec{f} = 0,
+\end{equation}$$
+
+which is a _generalized eigenvalue problem_, which can be solved using
+e.g. [ArnoldiMethod.jl](https://github.com/haampie/ArnoldiMethod.jl).
+
+If instead we want to calculate a derivative of $f$,
+i.e. $\operator{L}=\partial^m$, we find the vector of expansion
+coefficients for $g$ as
+
+$$\begin{equation}
+\vec{g} = \mat{S}^{-1}\mat{D}^{(m)}\vec{f},
+\end{equation}$$
+
+where $\mat{D}^{(m)} \defd B^H\partial^mB$, the elements of which are
+calculated according to [Derivatives](@ref).
+
+Finally, if we want to solve a boundary-value problem, the solution is
+given by
+
+$$\begin{equation}
+\vec{f} = \mat{L}^{-1}\mat{S}\vec{g}.
+\end{equation}$$

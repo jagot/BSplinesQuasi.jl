@@ -15,3 +15,4 @@ end
 
 include("knot_sets.jl")
 include("splines.jl")
+include("derivatives.jl")

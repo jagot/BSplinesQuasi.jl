@@ -4,7 +4,7 @@ import Base: axes, size, ==, getindex, checkbounds, copyto!, similar, diff, show
 import Base.Broadcast: materialize
 
 using ContinuumArrays
-import ContinuumArrays: Basis, ℵ₁
+import ContinuumArrays: Basis, ℵ₁, Derivative
 import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, QuasiAdjoint, MulQuasiArray, Inclusion, ApplyQuasiArray
 
 using BandedMatrices
@@ -43,5 +43,8 @@ include("knot_sets.jl")
 include("quadrature.jl")
 include("restricted_bases.jl")
 include("splines.jl")
+include("derivatives.jl")
+
+export Derivative
 
 end # module

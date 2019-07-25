@@ -20,6 +20,28 @@ lerp(a,b,t) = (1-t)*a + t*b
 
 mean_position(x, ϕ) = ϕ'*Diagonal(x)*ϕ/(ϕ'ϕ)
 
+function cfigure(fun::Function, figname; clear=true, tight=true, kwargs...)
+    figure(figname; kwargs...)
+    clear && clf()
+    fun()
+    tight && tight_layout()
+end
+
+function csubplot(fun::Function, args...; nox=false, noy=false)
+    ax = subplot(args...)
+    fun()
+    if nox
+        no_tick_labels(:x)
+        xlabel("")
+    end
+    if noy
+        no_tick_labels(:y)
+        ylabel("")
+    end
+    ax
+end
+
+
 function Bspline_text(x, ϕ, j, k, color)
     xⱼ = mean_position(x, ϕ)
     txt = text(xⱼ,0.7maximum(ϕ),
@@ -331,6 +353,56 @@ function smooth_interpolation()
     savefig("docs/src/figures/smooth-interpolation.svg")
 end
 
+function find_second_derivative(B, f::Function)
+    S = B'B
+    D = Derivative(axes(B,1))
+    ∇² = B'D'D*B
+
+    # Project function onto B-spline basis
+    cf = B \ f
+    # Find derivative
+    cg = S \ ∇²*cf
+
+    cf,cg
+end
+
+function sine_derivative()
+    t = LinearKnotSet(10, 0, 10, 30);
+    B = BSpline(t)[:,2:end-1]
+
+    f = x -> sin(2π*x)
+    g = x -> -4π^2*sin(2π*x)
+
+    cf,cg = find_second_derivative(B, f)
+
+    x = range(first(t), stop=last(t), length=1001)
+    χ = B[x, :]
+
+    cfigure("derivatives", figsize=(7,9)) do
+        csubplot(411,nox=true) do
+            l=plot(x, χ*cf, label=L"\tilde{f}(x)")[1]
+            plot(x, f.(x), ":", label=L"f(x)")
+            legend(framealpha=0.75)
+        end
+        csubplot(412,nox=true) do
+            l=plot(x, (χ*cg), label=L"\tilde{g}(x)")[1]
+            plot(x, g.(x), ":", label=L"g(x)")
+            legend(framealpha=0.75)
+        end
+        csubplot(413,nox=true) do
+            semilogy(x, abs.(χ*cg-g.(x)), label=L"|\tilde{g}(x)-g(x)|")
+            legend(framealpha=0.75)
+            ylim(1e-5,1)
+            ylabel("Error")
+        end
+        csubplot(414) do
+            plot(x, χ)
+            xlabel(L"x")
+        end
+    end
+    savefig("docs/src/figures/sine-derivative.svg")
+end
+
 mkpath("docs/src/figures")
 cardinal_splines()
 discontinuous_splines()
@@ -342,3 +414,4 @@ quadrature_points()
 function_interpolation()
 restricted_basis_interpolation()
 smooth_interpolation()
+sine_derivative()

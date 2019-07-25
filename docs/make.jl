@@ -14,6 +14,9 @@ makedocs(
             "Splines" => [
                 "Spline creation & evaluation" => "splines.md",
                 "Function approximation" => "function_approximation.md",
+            ],
+            "Examples" => [
+                "Differentiating functions" => "differentiation.md",
             ]
         ],
     ],

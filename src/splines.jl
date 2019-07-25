@@ -19,7 +19,7 @@ struct BSpline{T,R<:Real,
     S::SM
 end
 
-function BSpline(t::AbstractKnotSet{k}, x::AbstractVector{T}, w::AbstractVector) where {k,T}
+function basis_functions(t::AbstractKnotSet{k}, x::AbstractVector{T}, m=0) where {k,T}
     nf = numfunctions(t)
     B = spzeros(T, length(x), nf)
 
@@ -36,20 +36,44 @@ function BSpline(t::AbstractKnotSet{k}, x::AbstractVector{T}, w::AbstractVector)
         for j ∈ max(1,i-k+1):min(i,nf)
             eⱼ = UnitVector{T}(nf, j)
             for l ∈ ix:ix+N-1
-                B[l,j] = deBoor(t, eⱼ, x[l], i)
+                B[l,j] = deBoor(t, eⱼ, x[l], i, m)
             end
         end
         ix += N
     end
-    # For basis function i, loop over intervals j ∈ i:i+k
-    # Find all quadrature roots within interval j
-    # Evaluate B_{i,k}(x_j)
-    S = BandedMatrix(Zeros{T}(nf, nf), (k-1,k-1))
-    for i ∈ 1:nf
-        for j ∈ max(i-k+1,1):min(i+k-1,nf)
-            S[i,j] = B[:,i]' * Diagonal(w) * B[:,j]
+
+    B
+end
+
+basis_functions(B::BSpline, args...) = basis_functions(B.t, B.x, args...)
+
+function basis_functions(B::RestrictedQuasiArray{<:Any,<:Any,<:BSpline}, args...)
+    B′,restriction = B.applied.args
+    a,b = restriction_extents(restriction)
+    basis_functions(B′, args...)[:,1+a:end-b]
+end
+
+function overlap_matrix!(S::BandedMatrix, χ, ξ, w)
+    m = size(S,1)
+    # It is assumed that the bandwidth is correct for the overlap
+    # ⟨χ|ξ⟩.
+    p = bandwidth(S, 1)
+    W = Diagonal(w)
+    for i ∈ 1:m
+        for j ∈ max(i-p,1):min(i+p,m)
+            S[i,j] = χ[:,i]' * W * ξ[:,j]
         end
     end
+    S
+end
+
+function BSpline(t::AbstractKnotSet{k}, x::AbstractVector{T}, w::AbstractVector) where {k,T}
+    B = basis_functions(t, x)
+
+    nf = numfunctions(t)
+    S = BandedMatrix(Zeros{T}(nf, nf), (k-1,k-1))
+    overlap_matrix!(S, B, B, w)
+
     BSpline(t, x, w, B, S)
 end
 
@@ -77,7 +101,7 @@ size(B::RestrictedQuasiArray{<:Any,2,<:BSpline}) = (ℵ₁, length(B.applied.arg
 ==(A::BSpline,B::BSpline) = A.t == B.t
 ==(A::BSplineOrRestricted,B::BSplineOrRestricted) = unrestricted_basis(A) == unrestricted_basis(B)
 
-order(B::BSpline) = order(B.t)
+order(B::BSplineOrRestricted) = order(unrestricted_basis(B).t)
 
 function show(io::IO, B::BSpline{T}) where T
     write(io, "BSpline{$(T)} basis with $(B.t)")
@@ -116,20 +140,21 @@ IntervalSets.rightendpoint(B::RestrictedQuasiArray{<:Any,2,<:BSpline}) =
 # # * Basis functions
 
 """
-    deBoor(t, c, x[, k])
+    deBoor(t, c, x[, i[, m=0]])
 
 Evaluate the spline given by the knot set `t` and the set of control
-points `c` at `x` using de Boor's algorithm. `k` is the index of the
-knot interval containing `x`.
+points `c` at `x` using de Boor's algorithm. `i` is the index of the
+knot interval containing `x`. If `m≠0`, calculate the `m`th derivative
+at `x` instead.
 """
-function deBoor(t::AbstractKnotSet, c::AbstractVector, x,
-                i=find_interval(t, x))
+function deBoor(t::AbstractKnotSet, c::AbstractVector{T}, x,
+                i=find_interval(t, x), m=0) where T
     isnothing(i) && return zero(eltype(t))
     k = order(t)
     nc = length(c)
-    k == 1 && return nc < i ? 0 : c[i]
+    k == 1 && return (nc < i || m > 0) ? zero(T) : c[i]
 
-    α = [r > 0 && r ≤ nc ? c[r] : zero(eltype(c))
+    α = [r > 0 && r ≤ nc ? c[r] : zero(T)
          for r ∈ i-k+1:i]
     nt = length(t)
     nf = numfunctions(t)
@@ -142,14 +167,25 @@ function deBoor(t::AbstractKnotSet, c::AbstractVector, x,
 
             a = t[r+k-j]
             b = t[r]
-            
-            α[r′] = if r == 1
-                (b-x)*α[r′]/(b-a)
-            elseif r == nf + j
-                (x-a)*α[r′-1]/(b-a)
+
+            α[r′] = if j ≤ m
+                (k-j)*if r == 1
+                    -α[r′]
+                elseif r == nf + j
+                    α[r′-1]
+                else
+                    α[r′-1] - α[r′]
+                end
             else
-                ((x-a)*α[r′-1] + (b-x)*α[r′])/(b-a)
+                if r == 1
+                    (b-x)*α[r′]
+                elseif r == nf + j
+                    (x-a)*α[r′-1]
+                else
+                    ((x-a)*α[r′-1] + (b-x)*α[r′])
+                end
             end
+            α[r′] /= (b-a)
         end
     end
 
@@ -219,8 +255,10 @@ function materialize(M::Mul{<:Any,<:Tuple{<:QuasiAdjoint{<:Any,<:BSpline{T}},
     A.x == B.x && A.w == B.w || throw(ArgumentError("Cannot multiply B-spline bases resolved on different Gauß–Legendre points"))
 
     k = max(order(A.t),order(B.t))
+    m,n = size(A,2),size(B,2)
 
-    BandedMatrix(A.B' * Diagonal(A.w) * B.B, (k-1,k-1))
+    S = BandedMatrix(Zeros{T}(m,n), (k-1,k-1))
+    overlap_matrix!(S, A.B, B.B, weights(A))
 end
 
 function materialize(M::Mul{<:Any,<:Tuple{<:Adjoint{<:Any,<:RestrictionMatrix},
