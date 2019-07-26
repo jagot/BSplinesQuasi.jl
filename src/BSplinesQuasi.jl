@@ -43,6 +43,7 @@ include("knot_sets.jl")
 include("quadrature.jl")
 include("restricted_bases.jl")
 include("splines.jl")
+include("operators.jl")
 include("derivatives.jl")
 
 export Derivative

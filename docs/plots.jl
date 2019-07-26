@@ -353,6 +353,59 @@ function smooth_interpolation()
     savefig("docs/src/figures/smooth-interpolation.svg")
 end
 
+function diagonal_operators()
+    k = 7
+    N = 31
+
+    a,b = 0,70
+
+    coulomb(r) = -1/r
+
+    cfigure("V(x)", figsize=(7,9)) do
+        for (j,(t,x)) in enumerate([(LinearKnotSet(k, a, b, N),
+                                     range(a, stop=b, length=500)[2:end-1]),
+                                    (ExpKnotSet(k, -1.0, log10(b), N),
+                                     10 .^ range(-1.0, stop=log10(b), length=500)[2:end-1])])
+            B = BSpline(t,3)[:,2:end-1]
+            S = B'B
+
+            χ = B[x,:]
+
+            f = B \ x -> x^2*exp(-x)
+            g = B \ x -> -x*exp(-x)
+
+            V = Matrix(coulomb, B)
+            g̃ = S \ V*f
+
+            csubplot(3,2,(j-1)+1, nox=true) do
+                plot(x, χ*f, label=L"f(x)")
+                plot(x, χ*g̃, label=L"\tilde{g}(x)")
+                plot(x, χ*g, "--", label=L"g(x)")
+                yl=ylim()
+                plot(x, coulomb.(x), label=L"V(x)")
+                ylim(yl)
+                legend(framealpha=0.75)
+                xscale("log")
+                iseven(j) && axes_labels_opposite(:y)
+            end
+            csubplot(3,2,(j-1)+3, nox=true) do
+                plot(x, χ*(g-g̃), label=L"g(x)-\tilde{g}(x)")
+                legend(framealpha=0.75)
+                xscale("log")
+                ylabel("Error")
+                iseven(j) && axes_labels_opposite(:y)
+            end
+            csubplot(3,2,(j-1)+5) do
+                plot(x, χ)
+                xscale("log")
+                xlabel(L"x")
+                iseven(j) && axes_labels_opposite(:y)
+            end
+        end
+    end
+    savefig("docs/src/figures/diagonal-operators.svg")
+end
+
 function find_second_derivative(B, f::Function)
     S = B'B
     D = Derivative(axes(B,1))
@@ -468,6 +521,7 @@ quadrature_points()
 function_interpolation()
 restricted_basis_interpolation()
 smooth_interpolation()
+diagonal_operators()
 sine_derivative()
 ode_hookes_law(3, 0.1, 7, 30)
 ode_hookes_law(3, 0.1, 3, 1)

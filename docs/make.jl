@@ -17,6 +17,7 @@ makedocs(
                 "Spline creation & evaluation" => "splines.md",
                 "Function approximation" => "function_approximation.md",
             ],
+            "Approximating operators" => "operators.md",
             "Examples" => [
                 "Differentiating functions" => "differentiation.md",
                 "Ordinary differential equations" => "odes.md",
