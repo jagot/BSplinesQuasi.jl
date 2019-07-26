@@ -21,6 +21,7 @@ makedocs(
             "Examples" => [
                 "Differentiating functions" => "differentiation.md",
                 "Ordinary differential equations" => "odes.md",
+                "Eigenproblems" => "eigenproblems.md"
             ]
         ],
     ],

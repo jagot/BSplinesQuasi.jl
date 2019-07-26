@@ -11,6 +11,8 @@ using Colors
 using LinearAlgebra
 using BSplinesQuasi
 
+using ArnoldiMethod
+
 function mean_color(color::String)
     c = parse(Colorant, color)
     mean([c.r,c.g,c.b])
@@ -510,6 +512,91 @@ function ode_hookes_law(xₘₐₓ, kspring, k, N)
     savefig("docs/src/figures/hookes-law-$(k)-$(N).svg")
 end
 
+struct ShiftAndInvert{TA,TB,TT}
+    A⁻¹::TA
+    B::TB
+    temp::TT
+end
+
+Base.size(S::ShiftAndInvert, args...) = size(S.A⁻¹, args...)
+Base.eltype(S::ShiftAndInvert) = eltype(S.A⁻¹)
+
+function LinearAlgebra.mul!(y,M::ShiftAndInvert,x)
+    mul!(M.temp, M.B, x)
+    ldiv!(y, M.A⁻¹, M.temp)
+end
+
+construct_linear_map(A,B,σ=0) =
+    ShiftAndInvert(factorize(A-σ*B),B,Vector{eltype(A)}(undef, size(A,1)))
+
+function hydrogen_eigenstates()
+
+    k = 7
+    N = 31
+
+    a,b = 0,70
+
+    coulomb(r) = -1/r
+
+    nev = 5
+    σ = -0.5
+
+    n = 1:nev
+
+    cfigure("Hydrogen", figsize=(7,9)) do
+        for (j,(t,x,tol)) in enumerate([(LinearKnotSet(k, a, b, N),
+                                         range(a, stop=b, length=500)[2:end-1],
+                                         9e-3),
+                                        (ExpKnotSet(k, -1.0, log10(b), N),
+                                         10 .^ range(-1.0, stop=log10(b), length=500)[2:end-1],
+                                         2e-7)])
+            B = BSpline(t,3)[:,2:end-1]
+            S = B'B
+
+            χ = B[x,:]
+
+            D = Derivative(axes(B, 1))
+
+            ∇² = B'D'D*B
+
+            T = -∇²/2
+
+            V = Matrix(coulomb, B)
+
+            H = T + V
+
+            schurQR,history = partialschur(construct_linear_map(H, S, σ), nev=nev)
+            println(history)
+
+            θ = schurQR.eigenvalues
+            E = real(σ .+ inv.(θ))
+
+            csubplot(3,2,(j-1)+1, nox=true) do
+                for i = 1:nev
+                    ϕ = schurQR.Q[:,i]
+                    plot(x, real(E[i]) .+ abs2.(χ*ϕ)/(ϕ'S*ϕ)[1])
+                end
+                # legend(framealpha=0.75)
+                xscale("log")
+                iseven(j) && axes_labels_opposite(:y)
+            end
+            csubplot(3,2,(j-1)+3, nox=true) do
+                plot(x, coulomb.(x))
+                xscale("log")
+                iseven(j) && axes_labels_opposite(:y)
+            end
+            csubplot(3,2,(j-1)+5) do
+                plot(x, χ)
+                plot(x, χ)
+                xscale("log")
+                xlabel(L"x")
+                iseven(j) && axes_labels_opposite(:y)
+            end
+        end
+    end
+    savefig("docs/src/figures/hydrogen-eigenstates.svg")
+end
+
 mkpath("docs/src/figures")
 cardinal_splines()
 discontinuous_splines()
@@ -525,3 +612,4 @@ diagonal_operators()
 sine_derivative()
 ode_hookes_law(3, 0.1, 7, 30)
 ode_hookes_law(3, 0.1, 3, 1)
+hydrogen_eigenstates()

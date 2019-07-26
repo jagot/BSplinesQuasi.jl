@@ -23,9 +23,10 @@ julia> B = BSpline(t)[:,2:end-1]
 BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 10 on 0.0..10.0 (30 intervals), restricted to basis functions 2..38 ⊂ 1..39
 ```
 
-Until other boundary conditions are implemented, second order
-derivatives can only be reliably computed for functions which vanish
-on the boundaries:
+Until other boundary conditions are implemented (see note under
+[Ordinary differential equations](@ref)), second order derivatives can
+only be reliably computed for functions which vanish on the
+boundaries:
 
 ```julia
 julia> cf,cg = find_second_derivative(B, x -> sin(2π*x))
