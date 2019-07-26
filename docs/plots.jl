@@ -403,6 +403,60 @@ function sine_derivative()
     savefig("docs/src/figures/sine-derivative.svg")
 end
 
+function ode_hookes_law(xₘₐₓ, kspring, k, N)
+    t = LinearKnotSet(k, 0, xₘₐₓ, N)
+    # By omitting the first basis function, we enforce V(0) = 0
+    B = BSpline(t,0)[:,2:end]
+    S = B'B
+
+    D = Derivative(axes(B, 1))
+    ∇ = B'D*B
+
+    # Hooke's law
+    F = x -> -kspring*x
+    # Exact potential
+    V = x -> kspring*x^2/2
+
+    # Expand Hooke's law on B-splines
+    cF = B \ F
+    # Solve for expansion coefficients of potential
+    cV = -∇ \ S*cF
+
+    x = range(first(t), stop=last(t), length=500)
+    χ = B[x,:]
+    x_avg = [mean_position(x, view(χ, :, j)) for j in 1:size(B,2)]
+
+    cfigure("Hooke's law",figsize=(7,9)) do
+        csubplot(411,nox=true) do
+            l=plot(x, χ*cF, label=L"\tilde{F}(x)")[1]
+            plot(-x, -χ*cF, "--", color=l.get_color())
+            plot(x_avg, cF, ".:", color=l.get_color(), label=L"c_F")
+            plot(x, F.(x), ":", label=L"F(x)")
+            legend(framealpha=0.75)
+        end
+        csubplot(412,nox=true) do
+            l=plot(x, χ*cV, label=L"\tilde{V}(x)")[1]
+            plot(-x, χ*cV, "--", color=l.get_color())
+            plot(x_avg, cV, ".:", color=l.get_color(), label=L"c_V")
+            plot(x, V.(x), ":", label=L"V(x)")
+            legend(framealpha=0.75)
+        end
+        csubplot(413,nox=true) do
+            plot(x, χ*cV - V.(x))
+            xl = xlim()
+            xlim(-xl[2],xl[2])
+            ylabel("Error")
+        end
+        csubplot(414) do
+            plot(x, χ)
+            xl = xlim()
+            xlim(-xl[2],xl[2])
+            xlabel(L"x")
+        end
+    end
+    savefig("docs/src/figures/hookes-law-$(k)-$(N).svg")
+end
+
 mkpath("docs/src/figures")
 cardinal_splines()
 discontinuous_splines()
@@ -415,3 +469,5 @@ function_interpolation()
 restricted_basis_interpolation()
 smooth_interpolation()
 sine_derivative()
+ode_hookes_law(3, 0.1, 7, 30)
+ode_hookes_law(3, 0.1, 3, 1)

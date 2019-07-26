@@ -111,4 +111,35 @@ end
             @test ph > k + (k > 3 && k < 6 ? 3 : 1)
         end
     end
+
+    @testset "Hooke's law" begin
+        function ode_hookes_law(xₘₐₓ, kspring, k, N)
+            t = LinearKnotSet(k, 0, xₘₐₓ, N)
+            # By omitting the first basis function, we enforce V(0) = 0
+            B = BSpline(t,0)[:,2:end]
+            S = B'B
+
+            D = Derivative(axes(B, 1))
+            ∇ = B'D*B
+
+            # Hooke's law
+            F = x -> -kspring*x
+
+            # Expand Hooke's law on B-splines
+            cF = B \ F
+            # Solve for expansion coefficients of potential
+            cV = -∇ \ S*cF
+
+            B,cF,cV
+        end
+
+        kspring = 0.1
+        @testset "k=3" begin
+            @test last(ode_hookes_law(3, kspring, 3, 1)) ≈ [0, 0.45] atol=1e-15
+        end
+        @testset "k=7" begin
+            B,cF,cV = ode_hookes_law(3, kspring, 7, 30)
+            @test cV ≈ (B \ x -> kspring*x^2/2)
+        end
+    end
 end
