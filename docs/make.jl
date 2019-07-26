@@ -1,8 +1,9 @@
 using Documenter
 using BSplinesQuasi
 
-include("plots.jl")
+isdefined(Main, :NOPLOTS) && NOPLOTS || include("plots.jl")
 
+DocMeta.setdocmeta!(BSplinesQuasi, :DocTestSetup, :(using BSplinesQuasi); recursive=true)
 makedocs(
     modules = [BSplinesQuasi],
     sitename = "BSplinesQuasi",
@@ -11,6 +12,7 @@ makedocs(
         "Theory" => "theory.md",
         "Usage" => [
             "Basis creation" => "usage.md",
+            "Knot sets" => "knot_sets.md",
             "Splines" => [
                 "Spline creation & evaluation" => "splines.md",
                 "Function approximation" => "function_approximation.md",

@@ -55,6 +55,13 @@ function test_within_interval(x, interval, expected=nothing; reversed=true)
 end
 
 @testset "Knot sets" begin
+    @testset "Simple tests" begin
+        @test ArbitraryKnotSet(3, [0.0, 1, 1, 3, 4, 6], 1, 3) == [0.0, 1, 1, 3, 4, 6, 6, 6]
+        @test LinearKnotSet(3, 0, 1, 2) == [0,0,0,0.5,1,1,1]
+        @test LinearKnotSet(2, 0, 1, 2, 1, 1) == [0,0.5,1]
+        @test ExpKnotSet(2, -4, 2, 7) == [0,0,0.0001,0.001,0.01,0.1,1,10,100,100]
+    end
+
     @testset "k = $k" for k ∈ 1:6
         @testset "Full multiplicity" begin
             t = LinearKnotSet(k, 0, 1, 1)
