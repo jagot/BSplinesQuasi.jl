@@ -54,13 +54,14 @@ function basis_functions(B::RestrictedQuasiArray{<:Any,<:Any,<:BSpline}, args...
 end
 
 function overlap_matrix!(S::BandedMatrix, χ, ξ, w)
-    m = size(S,1)
+    m = min(size(S,1),size(χ,2))
+    n = min(size(S,2),size(ξ,2))
     # It is assumed that the bandwidth is correct for the overlap
     # ⟨χ|ξ⟩.
     p = bandwidth(S, 1)
     W = Diagonal(w)
     for i ∈ 1:m
-        for j ∈ max(i-p,1):min(i+p,m)
+        for j ∈ max(i-p,1):min(i+p,n)
             S[i,j] = χ[:,i]' * W * ξ[:,j]
         end
     end
@@ -78,14 +79,14 @@ function BSpline(t::AbstractKnotSet{k}, x::AbstractVector{T}, w::AbstractVector)
 end
 
 """
-    BSpline(t[, k′=3])
+    BSpline(t[, N])
 
-Create the B-spline basis corresponding to the knot set `t`. `k′` is
-the highest polynomial order of operators for which it should be
-possible to compute the matrix elements exactly (via Gauß–Legendre
-quadrature). The default `k′=3` corresponds to operators O(x²).
+Create the B-spline basis corresponding to the knot set `t`. `N` is
+the amount of Gauß–Legendre quadrature points per interval; The
+default is enough to calculate the matrix elements of operators O(x²)
+exactly.
 """
-BSpline(t::AbstractKnotSet, k′::Integer=3) = BSpline(t, lgwt(t, k′)...)
+BSpline(t::AbstractKnotSet, N=num_quadrature_points(order(t), 3)) = BSpline(t, lgwt(t, N)...)
 
 const RestrictedBSpline{T} = Union{RestrictedBasis{<:BSpline{T}},<:RestrictedQuasiArray{<:Any,<:Any,<:BSpline{T}}}
 const AdjointRestrictedBSpline{T} = Union{AdjointRestrictedBasis{<:BSpline{T}},<:AdjointRestrictedQuasiArray{<:Any,<:Any,<:BSpline{T}}}
@@ -251,7 +252,7 @@ function materialize(M::Mul{<:Any,<:Tuple{<:QuasiAdjoint{<:Any,<:BSpline{T}},
     Ac, B = M.args
     axes(Ac,2) == axes(B,1) || throw(DimensionMismatch("axes must be same"))
     A = parent(Ac)
-    A.t == B.t || throw(ArgumentError("Cannot multiply B-spline bases with different knot sets"))
+    A.t.t == B.t.t || throw(ArgumentError("Cannot multiply B-spline bases with different knot sets"))
     A.x == B.x && A.w == B.w || throw(ArgumentError("Cannot multiply B-spline bases resolved on different Gauß–Legendre points"))
 
     k = max(order(A.t),order(B.t))
@@ -266,10 +267,10 @@ function materialize(M::Mul{<:Any,<:Tuple{<:Adjoint{<:Any,<:RestrictionMatrix},
                                           <:BSpline{T},
                                           <:RestrictionMatrix}}) where T
     restAc,Ac,B,restB = M.args
-    restAc' == restB ||
+    a,b = restriction_extents(restB)
+    (a,b) == restriction_extents(parent(restAc)) ||
         throw(ArgumentError("Non-equal restriction matrices not supported"))
     S = Ac*B
-    a,b = restriction_extents(restB)
     sel = 1+a:size(S,1)-b
     S[sel,sel]
 end

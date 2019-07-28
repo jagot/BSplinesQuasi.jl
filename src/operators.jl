@@ -1,5 +1,26 @@
 # * Diagonal operators
 
+function Matrix(f::Function, L::BSpline{T}, R::BSpline{T}) where T
+    χ = L.B
+    ξ = Diagonal(f.(R.x))*R.B
+    k = max(order(L),order(R))
+    m,n = size(L,2),size(R,2)
+
+    S = BandedMatrix(Zeros{T}(m,n), (k-1,k-1))
+    overlap_matrix!(S, χ, ξ, weights(R))
+end
+
+function Matrix(f::Function,
+                L::RestrictedQuasiArray{<:Any,2,<:BSpline},
+                R::RestrictedQuasiArray{<:Any,2,<:BSpline})
+    L′,Lrestriction = L.applied.args
+    R′,Rrestriction = R.applied.args
+    La,Lb = restriction_extents(Lrestriction)
+    Ra,Rb = restriction_extents(Rrestriction)
+    M = Matrix(f, L′, R′)
+    M[1+La:end-Lb,1+Ra:end-Rb]
+end
+
 """
     Matrix(f, B)
 

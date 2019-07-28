@@ -265,7 +265,11 @@ end
 
 @testset "Quadrature" begin
     t = LinearKnotSet(1, 0, 1, 2)
-    x,w = BSplinesQuasi.lgwt(t, 3)
+    x,w = BSplinesQuasi.lgwt(t)
     @test all(w .== 1/4)
     @test x == [-1,1,-1,1]/(4*√3) + [1,1,3,3]/4
+
+    @test_logs (:warn, "N = 1 quadrature point not enough to calculate overlaps between polynomials of order k = 3") BSplinesQuasi.lgwt(LinearKnotSet(3, 0, 1, 3), 1)
+
+    @test_logs (:warn, "N = 2 quadrature points not enough to calculate overlaps between polynomials of order k = 3") BSplinesQuasi.lgwt(LinearKnotSet(3, 0, 1, 3), 2)
 end
