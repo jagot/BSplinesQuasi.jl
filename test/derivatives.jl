@@ -3,30 +3,82 @@ include("derivative_accuracy_utils.jl")
 #=
 # Snippet used to generate reference derivatives
 using AnalyticBSplines
-function analytic_derivatives(k, a, b, N, ml=k, mr=k)
-    t = LinearKnotSet(k, a//1, b//1, N, ml, mr)
-    B = gen_basis(t, ml==k ? 1//1 : 0, mr==k ? 1//1 : 0)
-    [derop(B, t, o) for o=1:k-1]
+function analytic_derivatives(kl, kr, a, b, N,
+                              mll=kl, mlr=kl,
+                              mrl=kr, mrr=kr)
+    tl = LinearKnotSet(kl, a//1, b//1, N, mll, mlr)
+    tr = LinearKnotSet(kr, a//1, b//1, N, mrl, mrr)
+
+    L = gen_basis(tl, mll==kl ? 1//1 : 0, mlr==kl ? 1//1 : 0)
+    R = gen_basis(tr, mrr==kr ? 1//1 : 0, mrr==kr ? 1//1 : 0)
+
+    [derop(L, R, tl, o) for o=1:min(kl,kr)-1]
 end
 =#
 
 @testset "Derivatives" begin
     @testset "Derivative operators" begin
         @testset "k = 3" begin
-            k = 3
-            t = LinearKnotSet(k, 0, 1, 2)
-            B = BSpline(t)
-            D = Derivative(axes(B,1))
+            @testset "One basis" begin
+                k = 3
+                t = LinearKnotSet(k, 0, 1, 2)
+                B = BSpline(t)
+                D = Derivative(axes(B,1))
 
-            @test B'D*B ≈ [  -1//2    5//12   1//12   0
-                             -5//12   0//1    1//3   1//12
-                             -1//12  -1//3    0//1   5//12
-                             0     -1//12  -5//12  1//2]
+                @test B'D*B ≈ [  -1//2    5//12   1//12   0
+                                 -5//12   0//1    1//3   1//12
+                                 -1//12  -1//3    0//1   5//12
+                                 0     -1//12  -5//12  1//2]
 
-            @test B'D'D*B ≈ [ -8//3   2//1   2//3    0
-                              2//1  -8//3   0//1   2//3
-                              2//3   0//1  -8//3   2//1
-                              0     2//3   2//1  -8//3]
+                @test B'D'D*B ≈ [ -8//3   2//1   2//3    0
+                                  2//1  -8//3   0//1   2//3
+                                  2//3   0//1  -8//3   2//1
+                                  0     2//3   2//1  -8//3]
+            end
+            @testset "kl = 3, kr = 4" begin
+                tl = LinearKnotSet(3, 0, 1, 2)
+                tr = LinearKnotSet(4, 0, 1, 2)
+
+                N = max(BSplinesQuasi.num_quadrature_points(3,1),
+                        BSplinesQuasi.num_quadrature_points(4,1))
+
+                L = BSpline(tl, N)
+                R = BSpline(tr, N)
+                D = Derivative(axes(R,1))
+
+                @test L'D*R ≈ [ -3//5   17//40   3//20    1//40  0//1
+                                -7//20  -3//20   1//5     1//4   1//20
+                                -1//20  -1//4   -1//5     3//20  7//20
+                                0//1   -1//40  -3//20  -17//40  3//5 ]
+
+                @test L'D'D*R ≈ [ -3//1   7//4   1//1   1//4   0//1
+                                  5//2  -5//2  -1//1   1//2   1//2
+                                  1//2   1//2  -1//1  -5//2   5//2
+                                  0//1   1//4   1//1   7//4  -3//1]
+            end
+            @testset "kl = 4, kr = 3" begin
+                tl = LinearKnotSet(4, 0, 1, 2)
+                tr = LinearKnotSet(3, 0, 1, 2)
+
+                N = max(BSplinesQuasi.num_quadrature_points(4,1),
+                        BSplinesQuasi.num_quadrature_points(3,1))
+
+                L = BSpline(tl, N)
+                R = BSpline(tr, N)
+                D = Derivative(axes(R,1))
+
+                @test L'D*R ≈ [  -2//5    7//20   1//20   0//1
+                                 -17//40   3//20   1//4    1//40
+                                 -3//20  -1//5    1//5    3//20
+                                 -1//40  -1//4   -3//20  17//40
+                                 0//1   -1//20  -7//20   2//5]
+
+                @test L'D'D*R ≈ [ -3//1   5//2   1//2   0//1
+                                  7//4  -5//2   1//2   1//4
+                                  1//1  -1//1  -1//1   1//1
+                                  1//4   1//2  -5//2   7//4
+                                  0//1   1//2   5//2  -3//1]
+            end
         end
         @testset "k = 7" begin
             k = 7
@@ -116,7 +168,7 @@ end
         function ode_hookes_law(xₘₐₓ, kspring, k, N)
             t = LinearKnotSet(k, 0, xₘₐₓ, N)
             # By omitting the first basis function, we enforce V(0) = 0
-            B = BSpline(t,0)[:,2:end]
+            B = BSpline(t)[:,2:end]
             S = B'B
 
             D = Derivative(axes(B, 1))

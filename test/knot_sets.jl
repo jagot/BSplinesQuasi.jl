@@ -265,7 +265,7 @@ end
 
 @testset "Quadrature" begin
     t = LinearKnotSet(1, 0, 1, 2)
-    x,w = BSplinesQuasi.lgwt(t)
+    x,w = BSplinesQuasi.lgwt(t, 2)
     @test all(w .== 1/4)
     @test x == [-1,1,-1,1]/(4*√3) + [1,1,3,3]/4
 
