@@ -45,6 +45,7 @@ jobs:
       env:
         - PYTHON=""
       script:
+        - julia --project=docs/ -e 'using Pkg; pkg"add LazyArrays@0.9.1"'
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaApproximation/ContinuumArrays.jl.git"'
         - julia --project=docs/ -e 'using Pkg; pkg"add PyCall PyPlot https://github.com/jagot/Jagot.jl.git https://github.com/jagot/PyPlotRecipes.jl.git Colors LinearAlgebra Statistics Random ArnoldiMethod"'
         - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
