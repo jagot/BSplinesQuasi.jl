@@ -244,10 +244,7 @@ Base.show(io::IO, spline::SplineMatrix) =
     write(io, "$(size(spline, 2))d spline on $(spline.applied.args[1])")
 
 # * Mass matrix
-function materialize(M::Mul{<:Any,<:Tuple{<:QuasiAdjoint{<:Any,<:BSpline{T}},
-                                          <:BSpline{T}}}) where T
-    Ac, B = M.args
-    axes(Ac,2) == axes(B,1) || throw(DimensionMismatch("axes must be same"))
+@simplify function *(Ac::QuasiAdjoint{<:Any,<:BSpline}, B::BSpline)
     A = parent(Ac)
     A.t.t == B.t.t || throw(ArgumentError("Cannot multiply B-spline bases with different knot sets"))
     A.x == B.x && A.w == B.w || throw(ArgumentError("Cannot multiply B-spline bases resolved on different Gauß–Legendre points"))
@@ -255,24 +252,9 @@ function materialize(M::Mul{<:Any,<:Tuple{<:QuasiAdjoint{<:Any,<:BSpline{T}},
     k = max(order(A.t),order(B.t))
     m,n = size(A,2),size(B,2)
 
-    S = BandedMatrix(Zeros{T}(m,n), (k-1,k-1))
+    S = BandedMatrix(Zeros{eltype(B)}(m,n), (k-1,k-1))
     overlap_matrix!(S, A.B, B.B, weights(A))
 end
-
-function materialize(M::Mul{<:Any,<:Tuple{<:Adjoint{<:Any,<:RestrictionMatrix},
-                                          <:QuasiAdjoint{<:Any,<:BSpline{T}},
-                                          <:BSpline{T},
-                                          <:RestrictionMatrix}}) where T
-    restAc,Ac,B,restB = M.args
-    a,b = restriction_extents(restB)
-    (a,b) == restriction_extents(parent(restAc)) ||
-        throw(ArgumentError("Non-equal restriction matrices not supported"))
-    S = Ac*B
-    sel = 1+a:size(S,1)-b
-    S[sel,sel]
-end
-
-# TODO: Implement mass matrices for restricted A, unrestricted B as well?
 
 # * Function interpolation
 

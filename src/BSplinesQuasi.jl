@@ -4,7 +4,7 @@ import Base: axes, size, ==, getindex, checkbounds, copyto!, similar, diff, show
 import Base.Broadcast: materialize
 
 using ContinuumArrays
-import ContinuumArrays: Basis, ℵ₁, Derivative
+import ContinuumArrays: Basis, ℵ₁, Derivative, @simplify
 
 using QuasiArrays
 import QuasiArrays: AbstractQuasiMatrix, QuasiAdjoint, MulQuasiArray, Inclusion, ApplyQuasiArray

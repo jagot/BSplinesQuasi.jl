@@ -18,6 +18,10 @@ RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
+[compat]
+julia = "1.1"
+LazyArrays = "0.10"
+
 [extras]
 ArnoldiMethod = "ec485272-7323-5ecc-a04f-4719b315124d"
 
