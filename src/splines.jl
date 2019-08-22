@@ -221,20 +221,10 @@ function getindex(B::BSpline{T}, x::AbstractRange, sel::AbstractVector) where T
     χ
 end
 
-@inline function Base.getindex(B::RestrictedBasis{<:BSpline{T}}, x::Real, sel::AbstractVector) where {T}
-    B′,restriction = B.args
-    B′[x,sel .+ restriction.l]
-end
-
 function getindex(B::BSpline{T}, x::AbstractRange, j::Integer) where T
     χ = spzeros(T, length(x))
     basis_function!(χ, B, x, j)
     χ
-end
-
-@inline function Base.getindex(B::RestrictedBasis{<:BSpline{T}}, x::Real, j::Integer) where {T}
-    B′,restriction = B.args
-    B′[x,j+restriction.l]
 end
 
 getindex(B::BSplineOrRestricted, x, ::Colon) =

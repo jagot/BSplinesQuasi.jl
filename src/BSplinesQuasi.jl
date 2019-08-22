@@ -5,7 +5,9 @@ import Base.Broadcast: materialize
 
 using ContinuumArrays
 import ContinuumArrays: Basis, ℵ₁, Derivative
-import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, QuasiAdjoint, MulQuasiArray, Inclusion, ApplyQuasiArray
+
+using QuasiArrays
+import QuasiArrays: AbstractQuasiMatrix, QuasiAdjoint, MulQuasiArray, Inclusion, ApplyQuasiArray
 
 using BandedMatrices
 using SparseArrays
