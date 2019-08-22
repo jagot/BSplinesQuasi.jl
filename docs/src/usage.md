@@ -33,6 +33,90 @@ julia> size(B)
 The last statement means that `B` is a quasimatrix with a continuous
 first dimension which is spanned by 8 basis functions.
 
+The overlap matrix is created simply:
+
+```julia
+julia> S = B'B
+8×8 BandedMatrices.BandedMatrix{Float64,Array{Float64,2},Base.OneTo{Int64}}:
+ 0.0285714    0.0175      0.00369048  0.000238095  …   ⋅           ⋅           ⋅
+ 0.0175       0.0442857   0.03125     0.00690476       ⋅           ⋅           ⋅
+ 0.00369048   0.03125     0.0653571   0.0449206       3.96825e-5   ⋅           ⋅
+ 0.000238095  0.00690476  0.0449206   0.095873        0.00474206  5.95238e-5   ⋅
+  ⋅           5.95238e-5  0.00474206  0.0472619       0.0449206   0.00690476  0.000238095
+  ⋅            ⋅          3.96825e-5  0.00474206   …  0.0653571   0.03125     0.00369048
+  ⋅            ⋅           ⋅          5.95238e-5      0.03125     0.0442857   0.0175
+  ⋅            ⋅           ⋅           ⋅              0.00369048
+  0.0175      0.0285714
+```
+
+## Number of quadrature points
+
+As explained in the theory section on [Integrals](@ref), Gauß–Legendre
+quadrature is used to approximate integrals between B-splines. It is
+possible to decide how many quadrature points are used by passing an
+argument to the [`BSpline`](@ref) constructor:
+
+```julia
+julia> B = BSpline(t,4)
+BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 4 (cubic) on 0.0..1.0 (5 intervals)
+```
+
+If too few quadrature points are specified, a warning is issued:
+
+```julia
+julia> B = BSpline(t,3)
+┌ Warning: N = 3 quadrature points not enough to calculate overlaps between polynomials of order k = 4
+└ @ BSplinesQuasi ~/.julia/dev/BSplinesQuasi/src/quadrature.jl:48
+BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 4 (cubic) on 0.0..1.0 (5 intervals)
+```
+
+## Dual bases
+
+It is sometimes useful to work with dual bases, e.g. B-splines of
+different orders. This is possible as long as both bases are resolved
+on the same quadrature points:
+
+```julia
+julia> tl = LinearKnotSet(3, 0, 1, 2)
+7-element LinearKnotSet{3,3,3,Float64,StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}}}:
+ 0.0
+ 0.0
+ 0.0
+ 0.5
+ 1.0
+ 1.0
+ 1.0
+
+julia> tr = LinearKnotSet(4, 0, 1, 2)
+9-element LinearKnotSet{4,4,4,Float64,StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}}}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.5
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+
+julia> N = 4
+4
+
+julia> L = BSpline(tl, N)
+BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 3 (parabolic) on 0.0..1.0 (2 intervals)
+
+julia> R = BSpline(tr, N)
+BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 4 (cubic) on 0.0..1.0 (2 intervals)
+
+julia> S = L'R
+4×5 BandedMatrices.BandedMatrix{Float64,Array{Float64,2},Base.OneTo{Int64}}:
+ 0.0833333   0.0645833   0.0166667  0.00208333   ⋅
+ 0.0375      0.129167    0.108333   0.0541667   0.00416667
+ 0.00416667  0.0541667   0.108333   0.129167    0.0375
+ 0.0         0.00208333  0.0166667  0.0645833   0.0833333
+```
+
+
 ## Evaluation of B-splines
 
 It is the possible to query the values of e.g. the first basis functions at some values of `x`:
@@ -93,4 +177,12 @@ julia> B[0.5,4:8]
  0.020833333333333322
  0.0
  0.0
+```
+
+## Reference
+
+```@docs
+BSpline
+BSpline(t::BSplinesQuasi.AbstractKnotSet, N)
+BSpline(t::BSplinesQuasi.AbstractKnotSet; k′=3)
 ```

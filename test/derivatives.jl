@@ -168,7 +168,7 @@ end
         function ode_hookes_law(xₘₐₓ, kspring, k, N)
             t = LinearKnotSet(k, 0, xₘₐₓ, N)
             # By omitting the first basis function, we enforce V(0) = 0
-            B = BSpline(t)[:,2:end]
+            B = BSpline(t,k′=1)[:,2:end]
             S = B'B
 
             D = Derivative(axes(B, 1))

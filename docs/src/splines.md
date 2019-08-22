@@ -119,9 +119,3 @@ julia> size(s̃)
 ```
 
 ![Two-dimensional spline](figures/spline-2d.svg)
-
-## Reference
-
-```@docs
-BSpline
-```

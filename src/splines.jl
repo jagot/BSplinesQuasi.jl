@@ -82,11 +82,18 @@ end
     BSpline(t[, N])
 
 Create the B-spline basis corresponding to the knot set `t`. `N` is
-the amount of Gauß–Legendre quadrature points per interval; The
-default is enough to calculate the matrix elements of operators O(x²)
-exactly.
+the amount of Gauß–Legendre quadrature points per interval.
 """
-BSpline(t::AbstractKnotSet, N=num_quadrature_points(order(t), 3)) = BSpline(t, lgwt(t, N)...)
+BSpline(t::AbstractKnotSet, N) = BSpline(t, lgwt(t, N)...)
+
+"""
+    BSpline(t[; k′=3])
+Create the B-spline basis corresponding to the knot set `t`. `k′` is
+the highest polynomial order of operators for which it should be
+possible to compute the matrix elements exactly (via Gauß–Legendre
+quadrature). The default `k′=3` corresponds to operators O(x²).
+"""
+BSpline(t::AbstractKnotSet; k′=3) = BSpline(t, num_quadrature_points(order(t), k′))
 
 const RestrictedBSpline{T} = Union{RestrictedBasis{<:BSpline{T}},<:RestrictedQuasiArray{<:Any,<:Any,<:BSpline{T}}}
 const AdjointRestrictedBSpline{T} = Union{AdjointRestrictedBasis{<:BSpline{T}},<:AdjointRestrictedQuasiArray{<:Any,<:Any,<:BSpline{T}}}

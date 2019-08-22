@@ -205,7 +205,7 @@ end
 function quadrature_points()
     t = ArbitraryKnotSet(3, [0.0, 1, 1, 3, 4, 6], 1, 3)
     x = range(first(t), stop=last(t), length=301)
-    B = BSpline(t,3)
+    B = BSpline(t)
     χ = B[x, :]
 
     figure("quadrature points", figsize=(7,9))
@@ -265,7 +265,7 @@ function restricted_basis_interpolation()
     t = LinearKnotSet(7, 0.0, 1.0, 6)
     x = range(first(t), stop=last(t), length=300)[2:end-1]
 
-    B = BSpline(t,3)
+    B = BSpline(t)
     B̃ = B[:,2:end-1]
 
     f1 = x -> sin(2π*x)
@@ -334,8 +334,8 @@ function smooth_interpolation()
 
     t3 = LinearKnotSet(3, 0.0, 1.0, 6);
     t4 = LinearKnotSet(4, 0.0, 1.0, 6);
-    B3 = BSpline(t3,0)
-    B4 = BSpline(t4,0)
+    B3 = BSpline(t3,k′=1)
+    B4 = BSpline(t4,k′=1)
 
     c3 = B3[x,:] \ y
     c4 = B4[x,:] \ y
@@ -368,7 +368,7 @@ function diagonal_operators()
                                      range(a, stop=b, length=500)[2:end-1]),
                                     (ExpKnotSet(k, -1.0, log10(b), N),
                                      10 .^ range(-1.0, stop=log10(b), length=500)[2:end-1])])
-            B = BSpline(t,3)[:,2:end-1]
+            B = BSpline(t)[:,2:end-1]
             S = B'B
 
             χ = B[x,:]
@@ -461,7 +461,7 @@ end
 function ode_hookes_law(xₘₐₓ, kspring, k, N)
     t = LinearKnotSet(k, 0, xₘₐₓ, N)
     # By omitting the first basis function, we enforce V(0) = 0
-    B = BSpline(t,0)[:,2:end]
+    B = BSpline(t,k′=1)[:,2:end]
     S = B'B
 
     D = Derivative(axes(B, 1))
@@ -550,7 +550,7 @@ function hydrogen_eigenstates()
                                         (ExpKnotSet(k, -1.0, log10(b), N),
                                          10 .^ range(-1.0, stop=log10(b), length=500)[2:end-1],
                                          2e-7)])
-            B = BSpline(t,3)[:,2:end-1]
+            B = BSpline(t)[:,2:end-1]
             S = B'B
 
             χ = B[x,:]

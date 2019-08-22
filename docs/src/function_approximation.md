@@ -46,7 +46,7 @@ the first/last spline:
 ```julia
 julia> t = LinearKnotSet(7, 0.0, 1.0, 6);
 
-julia> B = BSpline(t,3)
+julia> B = BSpline(t)
 BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 7 on 0.0..1.0 (6 intervals)
 
 julia> B̃ = B[:,2:end-1]
@@ -156,10 +156,10 @@ julia> t3 = LinearKnotSet(3, 0.0, 1.0, 6);
 
 julia> t4 = LinearKnotSet(4, 0.0, 1.0, 6);
 
-julia> B3 = BSpline(t3,0)
+julia> B3 = BSpline(t3,k′=1)
 BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 3 (parabolic) on 0.0..1.0 (6 intervals)
 
-julia> B4 = BSpline(t4,0)
+julia> B4 = BSpline(t4,k′=1)
 BSpline{Float64} basis with LinearKnotSet(Float64) of order k = 4 (cubic) on 0.0..1.0 (6 intervals)
 
 julia> c3 = B3[x,:] \ y
