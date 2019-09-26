@@ -13,8 +13,8 @@ end
 function Matrix(f::Function,
                 L::RestrictedQuasiArray{<:Any,2,<:BSpline},
                 R::RestrictedQuasiArray{<:Any,2,<:BSpline})
-    L′,Lrestriction = L.applied.args
-    R′,Rrestriction = R.applied.args
+    L′,Lrestriction = L.args
+    R′,Rrestriction = R.args
     La,Lb = restriction_extents(Lrestriction)
     Ra,Rb = restriction_extents(Rrestriction)
     M = Matrix(f, L′, R′)
@@ -50,7 +50,7 @@ function Matrix(f::Function, B::BSpline{T}) where T
 end
 
 function Matrix(f::Function, B::RestrictedQuasiArray{<:Any,2,<:BSpline})
-    B′,restriction = B.applied.args
+    B′,restriction = B.args
     a,b = restriction_extents(restriction)
     M = Matrix(f, B′)
     M[1+a:end-b,1+a:end-b]

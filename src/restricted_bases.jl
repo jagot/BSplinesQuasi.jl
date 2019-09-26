@@ -14,7 +14,7 @@ const AdjointBasisOrRestricted{B<:Basis} = Union{<:QuasiAdjoint{<:Any,B},Adjoint
 
 unrestricted_basis(R::AbstractQuasiMatrix) = R
 unrestricted_basis(R::RestrictedBasis) = first(R.args)
-unrestricted_basis(R::RestrictedQuasiArray) = unrestricted_basis(R.applied)
+unrestricted_basis(R::RestrictedQuasiArray) = first(R.args)
 
 function restriction_extents(restriction::RestrictionMatrix)
     a = restriction.l

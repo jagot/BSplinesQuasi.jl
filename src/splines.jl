@@ -48,7 +48,7 @@ end
 basis_functions(B::BSpline, args...) = basis_functions(B.t, B.x, args...)
 
 function basis_functions(B::RestrictedQuasiArray{<:Any,<:Any,<:BSpline}, args...)
-    B′,restriction = B.applied.args
+    B′,restriction = B.args
     a,b = restriction_extents(restriction)
     basis_functions(B′, args...)[:,1+a:end-b]
 end
@@ -105,7 +105,7 @@ const AdjointBSplineOrRestricted{T} = AdjointBasisOrRestricted{<:BSpline{T}}
 
 axes(B::BSpline) = (Inclusion(first(B.t)..last(B.t)), Base.OneTo(numfunctions(B.t)))
 size(B::BSpline) = (ℵ₁, numfunctions(B.t))
-size(B::RestrictedQuasiArray{<:Any,2,<:BSpline}) = (ℵ₁, length(B.applied.args[2].data))
+size(B::RestrictedQuasiArray{<:Any,2,<:BSpline}) = (ℵ₁, length(B.args[2].data))
 ==(A::BSpline,B::BSpline) = A.t == B.t
 ==(A::BSplineOrRestricted,B::BSplineOrRestricted) = unrestricted_basis(A) == unrestricted_basis(B)
 
@@ -116,7 +116,7 @@ function show(io::IO, B::BSpline{T}) where T
 end
 
 function show(io::IO, B::RestrictedQuasiArray{T,2,BSpline{T}}) where T
-    B′,restriction = B.applied.args
+    B′,restriction = B.args
     a,b = restriction_extents(restriction)
     N = numfunctions(B′.t)
     show(io, B′)
@@ -125,25 +125,25 @@ end
 
 restriction_extents(B::BSpline) = 0,0
 restriction_extents(B::RestrictedQuasiArray{<:Any,2,<:BSpline}) =
-    restriction_extents(B.applied.args[2])
+    restriction_extents(B.args[2])
 
 locs(B::BSpline) = B.x
 
 locs(B::RestrictedQuasiArray{<:Any,2,<:BSpline}) =
-    first(B.applied.args).x
+    first(B.args).x
 
 weights(B::BSpline) = B.w
 
 weights(B::RestrictedQuasiArray{<:Any,2,<:BSpline}) =
-    first(B.applied.args).w
+    first(B.args).w
 
 IntervalSets.leftendpoint(B::BSpline) = B.x[1]
 IntervalSets.rightendpoint(B::BSpline) = B.x[end]
 
 IntervalSets.leftendpoint(B::RestrictedQuasiArray{<:Any,2,<:BSpline}) =
-    leftendpoint(B.applied.args[1])
+    leftendpoint(B.args[1])
 IntervalSets.rightendpoint(B::RestrictedQuasiArray{<:Any,2,<:BSpline}) =
-    rightendpoint(B.applied.args[1])
+    rightendpoint(B.args[1])
 
 # # * Basis functions
 
@@ -238,10 +238,10 @@ const SplineMatrix{T,B<:BSplineOrRestricted} = SplineArray{T,2,B}
 const SplineVecOrMat{T,B<:BSplineOrRestricted} = Union{SplineVector{T,B},SplineMatrix{T,B}}
 
 Base.show(io::IO, spline::SplineVector) =
-    write(io, "Spline on $(spline.applied.args[1])")
+    write(io, "Spline on $(spline.args[1])")
 
 Base.show(io::IO, spline::SplineMatrix) =
-    write(io, "$(size(spline, 2))d spline on $(spline.applied.args[1])")
+    write(io, "$(size(spline, 2))d spline on $(spline.args[1])")
 
 # * Mass matrix
 @simplify function *(Ac::QuasiAdjoint{<:Any,<:BSpline}, B::BSpline)
@@ -260,7 +260,7 @@ end
 
 Base.:(\ )(B::BSpline, f::Function) = B.B \ f.(B.x)
 function Base.:(\ )(B::RestrictedBSpline, f::Function)
-    # B′,restriction = B.applied.args
+    # B′,restriction = B.args
     # a,b = restriction_extents(restriction)
     x = locs(B)
     V = B[x,:]
