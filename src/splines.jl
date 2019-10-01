@@ -258,13 +258,18 @@ end
 
 # * Function interpolation
 
-Base.:(\ )(B::BSpline, f::Function) = B.B \ f.(B.x)
-function Base.:(\ )(B::RestrictedBSpline, f::Function)
-    # B′,restriction = B.args
-    # a,b = restriction_extents(restriction)
+function Base.:(\ )(B::BSpline, f::BroadcastQuasiArray)
+    axes(f,1) == axes(B,1) ||
+        throw(DimensionMismatch("Function on $(axes(f,1).domain) cannot be interpolated over basis on $(axes(B,1).domain)"))
+    B.B \ getindex.(Ref(f), B.x)
+end
+
+function Base.:(\ )(B::RestrictedBSpline, f::BroadcastQuasiArray)
+    axes(f,1) == axes(B,1) ||
+        throw(DimensionMismatch("Function on $(axes(f,1).domain) cannot be interpolated over basis on $(axes(B,1).domain)"))
     x = locs(B)
     V = B[x,:]
-    V \ f.(x)
+    V \ getindex.(Ref(f), x)
 end
 
 export BSpline

@@ -113,14 +113,15 @@
 
     @testset "Function interpolation" begin
         B = BSpline(LinearKnotSet(7, 0, 1, 10))
-        c = B \ x -> sin(2π*x)
-        x = range(0, stop=1, length=301)
-        χ = B[x,:]
-        @test all(vecdist(χ*c, sin.(2π*x)) .< (3e-6, 2e-7))
+        x = axes(B,1)
+        c = B \ sin.(2π*x)
+        x̃ = range(0, stop=1, length=301)
+        χ = B[x̃,:]
+        @test all(vecdist(χ*c, sin.(2π*x̃)) .< (3e-6, 2e-7))
 
         B̃ = B[:,2:end-1]
-        c̃ = B̃ \ x -> sin(2π*x)
-        χ̃ = B̃[x,:]
-        @test all(vecdist(χ̃*c̃, sin.(2π*x)) .< (3e-6, 2e-7))
+        c̃ = B̃ \ sin.(2π*x)
+        χ̃ = B̃[x̃,:]
+        @test all(vecdist(χ̃*c̃, sin.(2π*x̃)) .< (3e-6, 2e-7))
     end
 end

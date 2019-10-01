@@ -11,10 +11,12 @@
             B = BSpline(t)[:,2:end-1]
             S = B'B
 
-            f = B \ x -> x^2*exp(-x)
-            g = B \ x -> -x*exp(-x)
+            r = axes(B,1)
 
-            V = Matrix(coulomb, B)
+            f = B \ r.^2 .* exp.(-r)
+            g = B \ -r.*exp(-r)
+
+            V = B'QuasiDiagonal(coulomb.(r))*B
             g̃ = S \ V*f
 
             @test g ≈ g̃ atol=tol
