@@ -65,7 +65,8 @@ function overlap_matrix!(S::BandedMatrix, χ, ξ, w)
             S[i,j] = χ[:,i]' * W * ξ[:,j]
         end
     end
-    S
+    χ == ξ && isreal(χ) && isreal(W) && isreal(ξ) ?
+        Symmetric(S) : S
 end
 
 function BSpline(t::AbstractKnotSet{k}, x::AbstractVector{T}, w::AbstractVector) where {k,T}
@@ -73,9 +74,8 @@ function BSpline(t::AbstractKnotSet{k}, x::AbstractVector{T}, w::AbstractVector)
 
     nf = numfunctions(t)
     S = BandedMatrix(Zeros{T}(nf, nf), (k-1,k-1))
-    overlap_matrix!(S, B, B, w)
 
-    BSpline(t, x, w, B, S)
+    BSpline(t, x, w, B, overlap_matrix!(S, B, B, w))
 end
 
 """
@@ -248,6 +248,8 @@ Base.show(io::IO, spline::SplineMatrix) =
     A = parent(Ac)
     A.t.t == B.t.t || throw(ArgumentError("Cannot multiply B-spline bases with different knot sets"))
     A.x == B.x && A.w == B.w || throw(ArgumentError("Cannot multiply B-spline bases resolved on different Gauß–Legendre points"))
+
+    A == B && return A.S
 
     k = max(order(A.t),order(B.t))
     m,n = size(A,2),size(B,2)

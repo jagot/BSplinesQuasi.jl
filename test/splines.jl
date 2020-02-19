@@ -101,6 +101,7 @@
         t = LinearKnotSet(k, 0, 1, 5)
         B = BSpline(t)
         @test B'B == B.S
+        @test B.S isa Symmetric
 
         B̃ = B[:,2:end-1]
         @test B̃'B̃ == B.S[2:end-1,2:end-1]
