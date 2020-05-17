@@ -1,5 +1,10 @@
 module BSplinesQuasi
 
+function __init__()
+    @warn "The BSplinesQuasi.jl package has been deprecated in favour of JuliaApproximation/CompactBases.jl"
+    nothing
+end
+
 import Base: axes, size, ==, getindex, checkbounds, copyto!, similar, diff, show
 import Base.Broadcast: materialize
 

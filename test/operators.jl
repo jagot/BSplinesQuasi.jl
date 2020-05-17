@@ -13,8 +13,8 @@
 
             r = axes(B,1)
 
-            f = B \ r.^2 .* exp.(-r)
-            g = B \ -r.*exp(-r)
+            f = B \ (r.^2 .* exp.(-r))
+            g = B \ (-r.*exp(-r))
 
             V = B'QuasiDiagonal(coulomb.(r))*B
             g̃ = S \ V*f

@@ -2,6 +2,13 @@
 #+AUTHOR: Stefanos Carlström
 #+EMAIL: stefanos.carlstrom@gmail.com
 
+*THIS LIBRARY HAS BEEN DEPRECATED*
+
+a more structured library, with support for finite-differences and
+FEDVR as well can be found at
+
+[[https://github.com/JuliaApproximation/CompactBases.jl]]
+
 [[https://travis-ci.org/jagot/BSplinesQuasi.jl][https://travis-ci.org/jagot/BSplinesQuasi.jl.svg?branch=master]]
 [[https://ci.appveyor.com/project/jagot/bsplinesquasi-jl][https://img.shields.io/appveyor/ci/jagot/bsplinesquasi-jl.svg?logo=appveyor]]
 [[https://codecov.io/gh/jagot/BSplinesQuasi.jl][https://codecov.io/gh/jagot/BSplinesQuasi.jl/branch/master/graph/badge.svg]]
